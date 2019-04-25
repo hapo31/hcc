@@ -48,9 +48,9 @@ try 0 '0 / 1'
 echo ---------------------------------------------------------------------
 
 if [ "$failed_count" -lt 1 ]; then
-    echo -e "$(green "[SUCCESS]") [$test_count/$test_count] all tests are passed"
+    echo -e "$(green '[SUCCESS]') [$test_count/$test_count] all tests are passed"
     exit 0
 else
-    echo -e "$(red "[FAILURE]") [$failed_count/$test_count] tests are failed"
+    echo -e "$(red '[FAILURE]') [$failed_count/$test_count] tests are failed"
     exit 1
 fi
