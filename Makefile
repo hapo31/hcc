@@ -1,5 +1,5 @@
-hcc:
-	./src/hcc.c
+hcc: src/hcc.c
+	gcc -o hcc ./src/hcc.c
 
 test: hcc
 	./test/test.sh
