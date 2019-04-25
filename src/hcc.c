@@ -10,6 +10,11 @@ enum
     TK_EOF,
 };
 
+enum
+{
+    ND_NUM = 256,
+};
+
 typedef struct
 {
     int type;
@@ -18,6 +23,153 @@ typedef struct
 } Token;
 
 Token tokens[100];
+
+typedef struct tagNode
+{
+    int type;
+    struct tagNode *lhs;
+    struct tagNode *rhs;
+    int value;
+} Node;
+
+Node *new_node(int type, Node *lhs, Node *rhs);
+Node *new_node_num(int value);
+
+int consume(int type);
+Node *add();
+Node *mul();
+Node *term();
+
+void gen(Node *node);
+void error(char *fmt, ...);
+void tokenize(char *p);
+
+Node *new_node(int type, Node *lhs, Node *rhs)
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = type;
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+Node *new_node_num(int value)
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_NUM;
+    node->value = value;
+    return node;
+}
+
+int pos = 0;
+
+int consume(int type)
+{
+    if (tokens[pos].type != type)
+    {
+        return 0;
+    }
+    ++pos;
+    return 1;
+}
+
+Node *add()
+{
+    Node *node = mul();
+    for (;;)
+    {
+        if (consume('+'))
+        {
+            node = new_node('+', node, mul());
+        }
+        else if (consume('-'))
+        {
+            node = new_node('-', node, mul());
+        }
+        else
+        {
+            return node;
+        }
+    }
+}
+
+Node *mul()
+{
+    Node *node = term();
+
+    for (;;)
+    {
+        if (consume('*'))
+        {
+            node = new_node('*', node, term());
+        }
+        else if (consume('/'))
+        {
+            node = new_node('/', node, term());
+        }
+        else
+        {
+            return node;
+        }
+    }
+}
+
+Node *term()
+{
+    if (consume('('))
+    {
+        Node *node = add();
+        if (!consume(')'))
+        {
+            error("開きカッコに対応する閉じカッコがありません。: %s", tokens[pos].input);
+        }
+        return node;
+    }
+
+    if (tokens[pos].type == TK_NUM)
+    {
+        return new_node_num(tokens[pos++].value);
+    }
+
+    error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
+}
+
+void gen(Node *node)
+{
+    if (node->type == ND_NUM)
+    {
+        printf("    push %d\n", node->value);
+        return;
+    }
+
+    gen(node->lhs);
+    gen(node->rhs);
+
+    printf("    pop rdi\n");
+    printf("    pop rax\n");
+
+    switch (node->type)
+    {
+    case '+':
+        printf("    add rax, rdi\n");
+        break;
+    case '-':
+        printf("    sub rax, rdi\n");
+        break;
+    case '*':
+        printf("    mul rdi\n");
+        break;
+    case '/':
+        printf("    mov rdx, 0\n");
+        printf("    div rdi\n");
+        break;
+
+    default:
+        break;
+    }
+
+    printf("    push rax\n");
+}
 
 void error(char *fmt, ...)
 {
@@ -40,7 +192,7 @@ void tokenize(char *p)
             continue;
         }
 
-        if (*p == '+' || *p == '-')
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
         {
             tokens[i].type = *p;
             tokens[i].input = p;
@@ -75,51 +227,21 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // トークン列に分解
     tokenize(argv[1]);
+    // 抽象構文木を作成
+    Node *node = add();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main: \n");
 
-    if (tokens[0].type != TK_NUM)
-    {
-        error("式の最初が数ではありません。");
-    }
-    printf("    mov rax, %d\n", tokens[0].value);
+    // 抽象構文木からアセンブラを生成
+    gen(node);
 
-    int i = 1;
-
-    while (tokens[i].type != TK_EOF)
-    {
-        // 足し算
-        if (tokens[i].type == '+')
-        {
-            ++i;
-            if (tokens[i].type != TK_NUM)
-            {
-                error("予期しないトークンです。:%s", tokens[i].input);
-            }
-            printf("    add rax, %d\n", tokens[i].value);
-            ++i;
-            continue;
-        }
-
-        // 引き算
-        if (tokens[i].type == '-')
-        {
-            ++i;
-            if (tokens[i].type != TK_NUM)
-            {
-                error("予期しないトークンです。:%s", tokens[i].input);
-            }
-            printf("    sub rax, %d\n", tokens[i].value);
-            ++i;
-            continue;
-        }
-
-        fprintf(stderr, "予期しない文字です。");
-        return 1;
-    }
+    // スタックトップに式全体の値が残っているはずなので
+    // それをRAXにロードして関数からの返り値とする
+    printf("    pop rax\n");
     printf("    ret\n");
 
     return 0;
