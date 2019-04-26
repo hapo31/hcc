@@ -42,15 +42,13 @@ try 10 '5 + 4 + 3 - 2'
 try 20 '(1 + 4) * 4'
 try 3 '3 * 3 / 3'
 try 0 '0 / 1'
-#try 0 '1 / 0'
-#try 0 '1 + -1'
 
 echo ---------------------------------------------------------------------
 
 if [ "$failed_count" -lt 1 ]; then
-    echo -e "$(green '[SUCCESS]') [$test_count/$test_count] all tests are passed"
+    echo -e "$(green '[SUCCESS]') [$test_count/$test_count] tests are passed."
     exit 0
 else
-    echo -e "$(red '[FAILURE]') [$failed_count/$test_count] tests are failed"
+    echo -e "$(red '[FAILURE]') [$failed_count/$test_count] tests are failed."
     exit 1
 fi
