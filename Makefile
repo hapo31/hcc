@@ -11,9 +11,9 @@ test.o: vector.o
 	gcc -c test/test.c
 
 test: hcc test.o vector.o
-	./test/test.sh
 	gcc -o test.a test.o vector.o
 	./test.a
+	./test/test.sh
 
 clean:
 	rm -f hcc test.a *.o *~ tmp*
