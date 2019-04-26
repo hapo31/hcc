@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "vector.h"
 #include "hcc.h"
 
-Token tokens[100];
+Vector *tokens;
 
 Node *new_node(int type, Node *lhs, Node *rhs)
 {
@@ -29,7 +30,7 @@ int pos = 0;
 
 int consume(int type)
 {
-    if (tokens[pos].type != type)
+    if (((Token *)tokens->data[pos])->type != type)
     {
         return 0;
     }
@@ -85,17 +86,17 @@ Node *term()
         Node *node = add();
         if (!consume(')'))
         {
-            error("開きカッコに対応する閉じカッコがありません。: %s", tokens[pos].input);
+            error("開きカッコに対応する閉じカッコがありません。: %s", ((Token *)tokens->data[pos])->input);
         }
         return node;
     }
 
-    if (tokens[pos].type == TK_NUM)
+    if (((Token *)tokens->data[pos])->type == TK_NUM)
     {
-        return new_node_num(tokens[pos++].value);
+        return new_node_num(((Token *)tokens->data[pos++])->value);
     }
 
-    error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
+    error("数値でも開きカッコでもないトークンです: %s", ((Token *)tokens->data[pos++])->input);
 }
 
 void gen(Node *node)
@@ -156,10 +157,12 @@ void tokenize(char *p)
             continue;
         }
 
+        Token *token = malloc(sizeof(Token));
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
         {
-            tokens[i].type = *p;
-            tokens[i].input = p;
+            token->type = *p;
+            token->input = p;
+            push_vector(tokens, token);
             i++;
             p++;
             continue;
@@ -167,9 +170,10 @@ void tokenize(char *p)
 
         if (isdigit(*p))
         {
-            tokens[i].type = TK_NUM;
-            tokens[i].value = strtol(p, &p, 10);
-            tokens[i].input = p;
+            token->type = TK_NUM;
+            token->value = strtol(p, &p, 10);
+            token->input = p;
+            push_vector(tokens, token);
             i++;
             continue;
         }
@@ -178,9 +182,11 @@ void tokenize(char *p)
         exit(1);
     }
 
+    Token *token = malloc(sizeof(Token));
     // トークン列の最後に EOF を付与
-    tokens[i].type = TK_EOF;
-    tokens[i].input = p;
+    token->type = TK_EOF;
+    token->input = p;
+    push_vector(tokens, token);
 }
 
 int main(int argc, char **argv)
@@ -190,6 +196,8 @@ int main(int argc, char **argv)
         fprintf(stderr, "引数の個数が正しくありません。\n");
         return 1;
     }
+
+    tokens = new_vector(10);
 
     // トークン列に分解
     tokenize(argv[1]);
