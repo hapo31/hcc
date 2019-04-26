@@ -3,4 +3,5 @@
 tmp*
 hcc
 ipch/
+test.a
 .vscode/c_cpp_properties.json
