@@ -20,5 +20,5 @@ void push_vector(Vector *vec, void *elem)
     vec->data = tmp;
   }
   vec->data[vec->len] = elem;
-  vec->len++;
+  ++vec->len;
 }
