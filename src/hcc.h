@@ -3,6 +3,7 @@ typedef enum
 {
   TK_NUM = 256,
   TK_IDENT,
+  TK_RETURN,
   TK_EOF,
 } TOKEN_TYPE;
 
@@ -10,6 +11,7 @@ typedef enum
 {
   ND_NUM = 256,
   ND_IDENT,
+  ND_RETURN,
 } NODE_TYPE;
 
 typedef struct
@@ -42,9 +44,13 @@ Node *mul();
 Node *term();
 Node *assign();
 Node *statement();
+Node *ret();
+
 void program();
 
 void gen(Node *node);
 void gen_lvalue(Node *node);
 void error(char *fmt, ...);
+
+int is_alpha_or_num(char c);
 void tokenize(char *p);

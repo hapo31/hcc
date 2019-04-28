@@ -129,21 +129,6 @@ Node *term()
     error("数値でも開きカッコでもないトークンです: %s", ((Token *)tokens->data[pos])->input);
 }
 
-void program()
-{
-    /**
-     * program: statement program
-     * program: ε
-     */
-    int i = 0;
-    while (((Token *)tokens->data[pos])->type != TK_EOF)
-    {
-        Node *node = statement();
-        push_vector(code, node);
-        ++i;
-    }
-}
-
 Node *statement()
 {
     /**
@@ -151,7 +136,16 @@ Node *statement()
      * statement: asign ";"
      */
 
-    Node *node = assign();
+    Node *node = NULL;
+    if (consume(TK_RETURN))
+    {
+        node = ret();
+        node->lhs = assign();
+    }
+    else
+    {
+        node = assign();
+    }
     if (!consume(';'))
     {
         error("式が ; で閉じられていません: %s\n", ((Token *)tokens->data[pos])->input);
@@ -175,6 +169,31 @@ Node *assign()
     return node;
 }
 
+Node *ret()
+{
+    /**
+     * return: "return"
+     */
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_RETURN;
+    return node;
+}
+
+void program()
+{
+    /**
+     * program: statement program
+     * program: ε
+     */
+    int i = 0;
+    while (((Token *)tokens->data[pos])->type != TK_EOF)
+    {
+        Node *node = statement();
+        push_vector(code, node);
+        ++i;
+    }
+}
+
 void gen_lvalue(Node *node)
 {
     if (node->type != ND_IDENT)
@@ -189,6 +208,17 @@ void gen_lvalue(Node *node)
 
 void gen(Node *node)
 {
+
+    if (node->type == ND_RETURN)
+    {
+        gen(node->lhs);
+        printf("    pop rax\n");
+        printf("    mov rsp, rbp\n");
+        printf("    pop rbp\n");
+        printf("    ret\n");
+        return;
+    }
+
     if (node->type == ND_NUM)
     {
         printf("    push %d\n", node->value);
@@ -254,6 +284,19 @@ void error(char *fmt, ...)
     exit(1);
 }
 
+int is_alpha_or_num(char c)
+{
+    if (c >= 'A' && c <= 'Z' ||
+        c >= 'a' && c <= 'z' ||
+        c >= '0' && c <= '9' ||
+        c == '_')
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 void tokenize(char *p)
 {
     int i = 0;
@@ -262,7 +305,7 @@ void tokenize(char *p)
         // 空白なら読み飛ばす
         if (isspace(*p))
         {
-            p++;
+            ++p;
             continue;
         }
 
@@ -272,8 +315,18 @@ void tokenize(char *p)
         {
             token->type = *p;
             token->input = p;
-            i++;
-            p++;
+            ++i;
+            ++p;
+            continue;
+        }
+
+        // returnキーワードのあとにアルファベット、数字、アンダースコアが来ていないかを調べる
+        if (strncmp(p, "return", 6) == 0 && !is_alpha_or_num(*(p + 6)))
+        {
+            token->type = TK_RETURN;
+            token->input = p;
+            ++i;
+            p += 6;
             continue;
         }
 
@@ -282,8 +335,8 @@ void tokenize(char *p)
             token->type = TK_IDENT;
             token->identifier = *p;
             token->input = p;
-            i++;
-            p++;
+            ++i;
+            ++p;
             continue;
         }
 
@@ -292,7 +345,7 @@ void tokenize(char *p)
             token->type = TK_NUM;
             token->value = strtol(p, &p, 10);
             token->input = p;
-            i++;
+            ++i;
             continue;
         }
 
