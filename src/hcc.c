@@ -49,8 +49,13 @@ int consume(int type)
 
 Node *add()
 {
+    /**
+     * add: mul
+     * add: add "+" mul
+     * add: add "-" mul
+     */
     Node *node = mul();
-    for (;;)
+    do
     {
         if (consume('+'))
         {
@@ -64,14 +69,20 @@ Node *add()
         {
             return node;
         }
-    }
+    } while (1);
 }
 
 Node *mul()
 {
+    /**
+     * mul: term
+     * mul: mul "*" term
+     * mul: mul "/" term
+     */
+
     Node *node = term();
 
-    for (;;)
+    do
     {
         if (consume('*'))
         {
@@ -85,11 +96,16 @@ Node *mul()
         {
             return node;
         }
-    }
+    } while (1);
 }
 
 Node *term()
 {
+    /**
+     * term: "(" term ")"
+     * term: num
+     * term: ident
+     */
     if (consume('('))
     {
         Node *node = assign();
@@ -100,7 +116,6 @@ Node *term()
         return node;
     }
 
-    // fprintf(stderr, "type: %d\n", ((Token *)tokens->data[pos])->type);
     if (((Token *)tokens->data[pos])->type == TK_NUM)
     {
         return new_node_num(((Token *)tokens->data[pos++])->value);
@@ -116,6 +131,10 @@ Node *term()
 
 void program()
 {
+    /**
+     * program: statement program
+     * program: ε
+     */
     int i = 0;
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
@@ -127,6 +146,11 @@ void program()
 
 Node *statement()
 {
+    /**
+     * statement: "return" assign ";"
+     * statement: asign ";"
+     */
+
     Node *node = assign();
     if (!consume(';'))
     {
@@ -138,6 +162,10 @@ Node *statement()
 
 Node *assign()
 {
+    /**
+     * assign: add
+     * assign: add "=" assign
+     */
     Node *node = add();
     while (consume('='))
     {
