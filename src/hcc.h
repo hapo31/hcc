@@ -45,5 +45,6 @@ Node *statement();
 void program();
 
 void gen(Node *node);
+void gen_lvalue(Node *node);
 void error(char *fmt, ...);
 void tokenize(char *p);

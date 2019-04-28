@@ -147,11 +147,44 @@ Node *assign()
     return node;
 }
 
+void gen_lvalue(Node *node)
+{
+    if (node->type != ND_IDENT)
+    {
+        error("代入の左辺値が変数ではありません。");
+    }
+    int offset = ('z' - node->name + 1) * 8;
+    printf("    mov rax, rbp\n");
+    printf("    sub rax, %d\n", offset);
+    printf("    push rax\n");
+}
+
 void gen(Node *node)
 {
     if (node->type == ND_NUM)
     {
         printf("    push %d\n", node->value);
+        return;
+    }
+
+    if (node->type == ND_IDENT)
+    {
+        gen_lvalue(node);
+        printf("    pop rax\n");
+        printf("    mov rax, [rax]\n");
+        printf("    push rax\n");
+        return;
+    }
+
+    if (node->type == '=')
+    {
+        gen_lvalue(node->lhs);
+        gen(node->rhs);
+
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    mov [rax], rdi\n");
+        printf("    push rdi\n");
         return;
     }
 
@@ -267,12 +300,26 @@ int main(int argc, char **argv)
     printf(".global main\n");
     printf("main: \n");
 
-    // 抽象構文木からアセンブラを生成
-    gen(code->data[0]);
+    // プロローグ
+    // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
+    printf("    push rbp\n");
+    printf("    mov rbp, rsp\n");
+    printf("    sub rsp, 208\n"); // 最初からa-zまでの変数の領域を確保しておくので 8 * 26 = 208
 
-    // スタックトップに式全体の値が残っているはずなので
-    // それをRAXにロードして関数からの返り値とする
-    printf("    pop rax\n");
+    for (int i = 0; i < code->len; ++i)
+    {
+        // 抽象構文木からアセンブラを生成
+        gen(code->data[i]);
+
+        // スタックに式の評価結果が乗っているので pop しておく
+        printf("    pop rax\n");
+    }
+
+    // エピローグ
+
+    printf("    mov rsp, rbp\n");
+    printf("    pop rbp\n");
+    // rax に演算結果が残っているので、それがこのプログラムの出力になる
     printf("    ret\n");
 
     return 0;
