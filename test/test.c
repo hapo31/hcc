@@ -1,5 +1,7 @@
-#include "../src/vector.h"
 #include <stdio.h>
+
+#include "../src/vector.h"
+#include "../src/map.h"
 
 int test_count = 0;
 int failed_count = 0;
@@ -29,6 +31,9 @@ void expect(int line, int expected, int actual)
 
 int main()
 {
+  /**
+   * Vector のテスト
+   */
   Vector *vec = new_vector(10);
   for (int i = 0; i < 100; ++i)
   {
@@ -39,6 +44,19 @@ int main()
   expect(__LINE__, 0, (int)vec->data[0]);
   expect(__LINE__, 50, (int)vec->data[50]);
   expect(__LINE__, 99, (int)vec->data[99]);
+
+  /**
+   * Map のテスト
+   */
+
+  Map *map = new_map();
+
+  expect(__LINE__, NULL, read_map(map, "hoge"));
+  expect(__LINE__, 0, contains_map(map, "hoge"));
+
+  put_map(map, "hoge", (void *)114514);
+  expect(__LINE__, 1, contains_map(map, "hoge"));
+  expect(__LINE__, 114514, ((int *)read_map(map, "hoge")));
 
   print_success();
   if (failed_count >= 1)
