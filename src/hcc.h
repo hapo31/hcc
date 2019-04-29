@@ -20,7 +20,7 @@ typedef struct
   // type が TK_NUM のとき、数値
   int value;
   // type が TK_IDENT のとき、識別子の名前
-  char identifier;
+  char *identifier;
   // デバッグ用
   char *input;
 } Token;
@@ -31,12 +31,12 @@ typedef struct tagNode
   struct tagNode *lhs;
   struct tagNode *rhs;
   int value;
-  char name;
+  char *name;
 } Node;
 
 Node *new_node(int type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
-Node *new_node_identifier(char name);
+Node *new_node_identifier(char *name);
 
 int consume(int type);
 Node *add();

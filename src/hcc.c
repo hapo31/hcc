@@ -5,10 +5,13 @@
 #include <string.h>
 
 #include "vector.h"
+#include "map.h"
 #include "hcc.h"
 
 Vector *tokens;
 Vector *code;
+
+Map *identifiers;
 
 Node *new_node(int type, Node *lhs, Node *rhs)
 {
@@ -27,7 +30,7 @@ Node *new_node_num(int value)
     return node;
 }
 
-Node *new_node_identifier(char name)
+Node *new_node_identifier(char *name)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_IDENT;
@@ -200,7 +203,8 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    int offset = ('z' - node->name + 1) * 8;
+    int ident_index = (int)read_map(identifiers, node->name);
+    int offset = ('z' - ident_index + 1) * 8;
     printf("    mov rax, rbp\n");
     printf("    sub rax, %d\n", offset);
     printf("    push rax\n");
@@ -330,13 +334,26 @@ void tokenize(char *p)
             continue;
         }
 
-        if (*p >= 'a' && *p <= 'z')
+        // アルファベットかアンダースコアだったら識別子の開始とする
+        if (*p >= 'a' && *p <= 'z' || *p >= 'A' && p <= 'Z' || *p == '_')
         {
             token->type = TK_IDENT;
-            token->identifier = *p;
+            char *head = p;
+            int len = 0;
+            while (is_alpha_or_num(*(p + len)))
+            {
+                ++len;
+                if (*p == EOF)
+                {
+                    error("識別子が正しく終了していません: %s", head);
+                }
+            }
+            token->identifier = malloc(sizeof(char) * (len + 1));
+            strncpy(token->identifier, p, len);
+            put_map(identifiers, token->identifier, identifiers->keys->len);
             token->input = p;
             ++i;
-            ++p;
+            p += len;
             continue;
         }
 
@@ -370,6 +387,7 @@ int main(int argc, char **argv)
 
     tokens = new_vector(10);
     code = new_vector(5);
+    identifiers = new_map();
 
     // トークン列に分解
     tokenize(argv[1]);

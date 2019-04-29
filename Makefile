@@ -1,5 +1,5 @@
-hcc: hcc.o vector.o
-	gcc -o hcc hcc.o vector.o
+hcc: hcc.o vector.o map.o
+	gcc -o hcc hcc.o vector.o map.o
 
 map.o: src/map.c
 	gcc -c src/map.c
