@@ -8,6 +8,8 @@
 #include "map.h"
 #include "hcc.h"
 
+#define VAR_SIZE 8
+
 Vector *tokens;
 Vector *code;
 
@@ -204,7 +206,7 @@ void gen_lvalue(Node *node)
         error("代入の左辺値が変数ではありません。");
     }
     int ident_index = (int)read_map(identifiers, node->name);
-    int offset = ('z' - ident_index + 1) * 8;
+    int offset = ident_index * VAR_SIZE;
     printf("    mov rax, rbp\n");
     printf("    sub rax, %d\n", offset);
     printf("    push rax\n");
@@ -343,14 +345,14 @@ void tokenize(char *p)
             while (is_alpha_or_num(*(p + len)))
             {
                 ++len;
-                if (*p == EOF)
+                if (*(p + len) == EOF)
                 {
                     error("識別子が正しく終了していません: %s", head);
                 }
             }
             token->identifier = malloc(sizeof(char) * (len + 1));
             strncpy(token->identifier, p, len);
-            put_map(identifiers, token->identifier, identifiers->keys->len);
+            put_map(identifiers, token->identifier, identifiers->len);
             token->input = p;
             ++i;
             p += len;
@@ -403,7 +405,7 @@ int main(int argc, char **argv)
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     printf("    push rbp\n");
     printf("    mov rbp, rsp\n");
-    printf("    sub rsp, 208\n"); // 最初からa-zまでの変数の領域を確保しておくので 8 * 26 = 208
+    printf("    sub rsp, %d\n", identifiers->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 
     for (int i = 0; i < code->len; ++i)
     {
