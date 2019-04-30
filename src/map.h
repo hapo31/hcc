@@ -6,6 +6,7 @@ typedef struct
 {
   Vector *keys;
   Vector *data;
+  size_t len;
 } Map;
 
 Map *new_map();

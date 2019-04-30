@@ -8,6 +8,7 @@ Map *new_map()
   Map *map = (Map *)malloc(sizeof(Map));
   map->keys = new_vector(10);
   map->data = new_vector(10);
+  map->len = 0;
 
   return map;
 }
@@ -36,6 +37,7 @@ void put_map(Map *map, const char *key, void *value)
     strncpy(key_buf, key, key_len);
     push_vector(map->keys, key_buf);
     push_vector(map->data, value);
+    ++map->len;
   }
   else
   {
