@@ -1,6 +1,9 @@
 hcc: hcc.o vector.o map.o
 	gcc -o hcc hcc.o vector.o map.o
 
+utils.o: src/utils.c
+	gcc -c src/utils.c
+
 map.o: src/map.c
 	gcc -c src/map.c
 

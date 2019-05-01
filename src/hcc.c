@@ -7,6 +7,7 @@
 #include "vector.h"
 #include "map.h"
 #include "hcc.h"
+#include "utils.h"
 
 #define VAR_SIZE 8
 
@@ -279,28 +280,6 @@ void gen(Node *node)
     }
 
     printf("    push rax\n");
-}
-
-void error(char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-int is_alpha_or_num(char c)
-{
-    if (c >= 'A' && c <= 'Z' ||
-        c >= 'a' && c <= 'z' ||
-        c >= '0' && c <= '9' ||
-        c == '_')
-    {
-        return 1;
-    }
-
-    return 0;
 }
 
 void tokenize(char *p)

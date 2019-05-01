@@ -50,7 +50,5 @@ void program();
 
 void gen(Node *node);
 void gen_lvalue(Node *node);
-void error(char *fmt, ...);
 
-int is_alpha_or_num(char c);
 void tokenize(char *p);
