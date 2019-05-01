@@ -1,8 +1,17 @@
-hcc: hcc.o vector.o map.o
-	gcc -o hcc hcc.o vector.o map.o
+hcc: hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
+	gcc -o hcc hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
 
 utils.o: src/utils.c
 	gcc -c src/utils.c
+
+tokenizer.o: src/tokenizer.c
+	gcc -c src/tokenizer.c
+
+parser.o: src/parser.c
+	gcc -c src/parser.c
+
+codegen.o: src/codegen.c
+	gcc -c src/codegen.c
 
 map.o: src/map.c
 	gcc -c src/map.c
