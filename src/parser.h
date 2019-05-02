@@ -28,6 +28,7 @@ Node *new_node_identifier(char *name);
 int consume(int type);
 Node *add();
 Node *mul();
+Node *unary();
 Node *term();
 Node *assign();
 Node *statement();

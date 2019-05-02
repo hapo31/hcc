@@ -70,28 +70,50 @@ Node *add()
 Node *mul()
 {
     /**
-     * mul: term
-     * mul: mul "*" term
-     * mul: mul "/" term
+     * mul: unary
+     * mul: mul "*" unary
+     * mul: mul "/" unary
      */
 
-    Node *node = term();
+    Node *node = unary();
 
     do
     {
         if (consume('*'))
         {
-            node = new_node('*', node, term());
+            node = new_node('*', node, unary());
         }
         else if (consume('/'))
         {
-            node = new_node('/', node, term());
+            node = new_node('/', node, unary());
         }
         else
         {
             return node;
         }
     } while (1);
+}
+
+Node *unary()
+{
+    /**
+     * unary: term
+     * unary: "+" term
+     * unary: "-" term
+     */
+
+    if (consume('+'))
+    {
+        return term();
+    }
+    else if (consume('-'))
+    {
+        return new_node('-', new_node_num(0), term());
+    }
+    else
+    {
+        return term();
+    }
 }
 
 Node *term()
