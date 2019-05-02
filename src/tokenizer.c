@@ -58,7 +58,10 @@ TokenizeResult tokenize(char *p)
             }
             token->identifier = malloc(sizeof(char) * (len + 1));
             strncpy(token->identifier, p, len);
-            put_map(identifiers, token->identifier, (void *)identifiers->len);
+            if (!contains_map(identifiers, token->identifier))
+            {
+                put_map(identifiers, token->identifier, (void *)identifiers->len);
+            }
             token->input = p;
             ++i;
             p += len;
