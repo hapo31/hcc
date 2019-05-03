@@ -6,6 +6,7 @@ typedef enum
 {
     TK_NUM = 256,
     TK_IDENT,  // 識別子
+    TK_LABEL,  // ラベル
     TK_RETURN, // return
     TK_EQ,     // ==
     TK_NE,     // !=
@@ -13,6 +14,7 @@ typedef enum
     TK_LE,     // >=
     TK_LT,     // >
     TK_GT,     // <
+    TK_GOTO,   // goto
     TK_EOF,
 } TOKEN_TYPE;
 

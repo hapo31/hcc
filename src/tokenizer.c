@@ -24,6 +24,25 @@ TokenizeResult tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
+        if (strncmp(p, "goto", 4) == 1)
+        {
+            token->type = TK_GOTO;
+            token->input = p;
+            ++i;
+            p += 4;
+            continue;
+        }
+
+        // returnキーワードのあとにアルファベット、数字、アンダースコアが来ていないかを調べる
+        if (strncmp(p, "return", 6) == 0 && !is_alpha_or_num(*(p + 6)))
+        {
+            token->type = TK_RETURN;
+            token->input = p;
+            ++i;
+            p += 6;
+            continue;
+        }
+
         if (strncmp(p, "==", 2) == 0)
         {
             token->type = TK_EQ;
@@ -78,22 +97,14 @@ TokenizeResult tokenize(char *p)
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=')
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' ||
+            *p == '(' || *p == ')' || *p == ';' || *p == '=' ||
+            *p == ':')
         {
             token->type = *p;
             token->input = p;
             ++i;
             ++p;
-            continue;
-        }
-
-        // returnキーワードのあとにアルファベット、数字、アンダースコアが来ていないかを調べる
-        if (strncmp(p, "return", 6) == 0 && !is_alpha_or_num(*(p + 6)))
-        {
-            token->type = TK_RETURN;
-            token->input = p;
-            ++i;
-            p += 6;
             continue;
         }
 
