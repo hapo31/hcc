@@ -5,6 +5,8 @@
 Vector *tokens;
 Vector *code;
 
+int pos = 0;
+
 char *input()
 {
     return ((Token *)tokens->data[pos])->input;
@@ -34,8 +36,6 @@ Node *new_node_identifier(char *name)
     node->name = name;
     return node;
 }
-
-int pos = 0;
 
 int consume(int type)
 {
