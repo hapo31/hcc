@@ -29,7 +29,7 @@ try() {
         echo -e "$(green "[OK]") $input => $actual"
 
     else
-        echo -e "$(red "[NG]") $expected expected, but got $actual"
+        echo -e "$(red "[NG]") $input => $actual (expected $expected)"
         failed_count=$((failed_count + 1))
         return 1
     fi
@@ -49,6 +49,10 @@ try 20 'hoge = 10; fuga = hoge + 10; return fuga;'
 try 20 'a = 1; b = 1; c = a + b; c = c * 10; return c;'
 try 10 'return -15 + (+25);'
 try 0 'a = -5; b = 5; return a + b;'
+try 1 '1 == 1;'
+try 0 '1 == 0;'
+try 1 '1 != 0;'
+try 0 '1 != 1;'
 
 echo ---------------------------------------------------------------------
 

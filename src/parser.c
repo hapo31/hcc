@@ -191,11 +191,11 @@ Node *relational()
     }
     else if (consume(TK_GT))
     {
-        return new_node(ND_GT, node, add());
+        return new_node(ND_GT, add(), node);
     }
     else if (consume(TK_GE))
     {
-        return new_node(ND_GE, node, add());
+        return new_node(ND_GE, add(), node);
     }
     else
     {

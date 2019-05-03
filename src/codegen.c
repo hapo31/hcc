@@ -95,7 +95,26 @@ void gen(FILE *fp, Node *node)
         fprintf(fp, "    mov rdx, 0\n");
         fprintf(fp, "    div rdi\n");
         break;
-
+    case ND_EQ:
+        fprintf(fp, "    cmp rdx, rdi\n");
+        fprintf(fp, "    sete al\n");
+        fprintf(fp, "    movzb rax, al\n");
+        break;
+    case ND_NE:
+        fprintf(fp, "    cmp rdx, rdi\n");
+        fprintf(fp, "    setne al\n");
+        fprintf(fp, "    movzb rax, al\n");
+        break;
+    case ND_LE:
+        fprintf(fp, "    cmp rdx, rdi\n");
+        fprintf(fp, "    setle al\n");
+        fprintf(fp, "    movzb rax, al\n");
+        break;
+    case ND_LT:
+        fprintf(fp, "   cmp rdx, rdi\n");
+        fprintf(fp, "   setl al\n");
+        fprintf(fp, "   movzb rax, al\n");
+        break;
     default:
         break;
     }
