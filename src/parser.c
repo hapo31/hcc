@@ -5,7 +5,7 @@
 Vector *tokens;
 Vector *code;
 
-Node *new_node(int type, Node *lhs, Node *rhs)
+Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = type;
@@ -154,6 +154,19 @@ Node *equality()
      * equality: equality "==" relational
      * equality: equality "!=" relational
      */
+    Node *node = relational();
+    if (consume(TK_EQ))
+    {
+        return new_node(ND_EQ, node, relational());
+    }
+    else if (consume(TK_NE))
+    {
+        return new_node(ND_NE, node, relational());
+    }
+    else
+    {
+        return node;
+    }
 }
 
 Node *relational()
@@ -165,6 +178,29 @@ Node *relational()
      * relational: relational ">"  add
      * relational: relational ">=" add
      */
+
+    Node *node = add();
+
+    if (consume(TK_LT))
+    {
+        return new_node(ND_LT, node, add());
+    }
+    else if (consume(TK_LE))
+    {
+        return new_node(ND_LE, node, add());
+    }
+    else if (consume(TK_GT))
+    {
+        return new_node(ND_GT, node, add());
+    }
+    else if (consume(TK_GE))
+    {
+        return new_node(ND_GE, node, add());
+    }
+    else
+    {
+        return node;
+    }
 }
 
 Node *statement()
@@ -195,10 +231,10 @@ Node *statement()
 Node *assign()
 {
     /**
-     * assign: add
-     * assign: add "=" assign
+     * assign: equality
+     * assign: equality "=" assign
      */
-    Node *node = add();
+    Node *node = equality();
     while (consume('='))
     {
         node = new_node('=', node, assign());

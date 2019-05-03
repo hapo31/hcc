@@ -23,6 +23,61 @@ TokenizeResult tokenize(char *p)
 
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
+
+        if (strncmp(p, "==", 2) == 0)
+        {
+            token->type = TK_EQ;
+            token->input = p;
+            ++i;
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "!=", 2) == 0)
+        {
+            token->type = TK_NE;
+            token->input = p;
+            ++i;
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, ">=", 2) == 0)
+        {
+            token->type = TK_GE;
+            token->input = p;
+            ++i;
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "<=", 2) == 0)
+        {
+            token->type = TK_LE;
+            token->input = p;
+            ++i;
+            p += 2;
+            continue;
+        }
+
+        if (*p == '>')
+        {
+            token->type = TK_GT;
+            token->input = p;
+            ++i;
+            ++p;
+            continue;
+        }
+
+        if (*p == '<')
+        {
+            token->type = TK_LT;
+            token->input = p;
+            ++i;
+            ++p;
+            continue;
+        }
+
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=')
         {
             token->type = *p;

@@ -8,8 +8,14 @@
 typedef enum
 {
     ND_NUM = 256,
-    ND_IDENT,
-    ND_RETURN,
+    ND_IDENT,  // 識別子
+    ND_RETURN, // return
+    ND_EQ,     // ==
+    ND_NE,     // !=
+    ND_GE,     // <=
+    ND_LE,     // >=
+    ND_LT,     // >
+    ND_GT,     // <
 } NODE_TYPE;
 
 typedef struct tagNode
@@ -21,7 +27,7 @@ typedef struct tagNode
     char *name;
 } Node;
 
-Node *new_node(int type, Node *lhs, Node *rhs);
+Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name);
 
@@ -31,6 +37,8 @@ Node *mul();
 Node *unary();
 Node *term();
 Node *assign();
+Node *equality();
+Node *relational();
 Node *statement();
 Node *ret();
 
