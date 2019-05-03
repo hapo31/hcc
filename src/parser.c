@@ -5,6 +5,11 @@
 Vector *tokens;
 Vector *code;
 
+char *input()
+{
+    return ((Token *)tokens->data[pos])->input;
+}
+
 Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
@@ -129,7 +134,7 @@ Node *term()
 
         if (!consume(')'))
         {
-            error("開きカッコに対応する閉じカッコがありません: %s", ((Token *)tokens->data[pos])->input);
+            error("開きカッコに対応する閉じカッコがありません: %s", input());
         }
         return node;
     }
@@ -144,7 +149,7 @@ Node *term()
         return new_node_identifier(((Token *)tokens->data[pos++])->identifier);
     }
 
-    error("数値でも開きカッコでもないトークンです: %s", ((Token *)tokens->data[pos])->input);
+    error("数値でも開きカッコでもないトークンです: %s", input());
 }
 
 Node *equality()
@@ -224,7 +229,7 @@ Node *statement()
     }
     if (!consume(';'))
     {
-        error("式が ; で閉じられていません: %s\n", ((Token *)tokens->data[pos])->input);
+        error("式が ; で閉じられていません: %s\n", input());
     }
 
     return node;
