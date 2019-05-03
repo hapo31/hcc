@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "tokenizer.h"
 #include "utils.h"
@@ -24,7 +25,25 @@ TokenizeResult tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
-        if (strncmp(p, "goto", 4) == 1)
+        if (strncmp(p, "if", 2) == 0)
+        {
+            token->type = TK_IF;
+            token->input = p;
+            ++i;
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "else", 4) == 0)
+        {
+            token->type = TK_ELSE;
+            token->input = p;
+            ++i;
+            p += 4;
+            continue;
+        }
+
+        if (strncmp(p, "goto", 4) == 0)
         {
             token->type = TK_GOTO;
             token->input = p;

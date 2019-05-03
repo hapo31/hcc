@@ -4,6 +4,8 @@
 
 Map *identifiers;
 Vector *code;
+int if_count = 0;
+int else_count = 0;
 
 void initial(FILE *fp)
 {
@@ -36,6 +38,18 @@ void gen_lvalue(FILE *fp, Node *node)
 
 void gen(FILE *fp, Node *node)
 {
+    if (node->type == ND_IF)
+    {
+        gen(fp, node->lhs);
+        fprintf(fp, "    pop rax\n");
+        fprintf(fp, "    cmp rax, 0\n");
+        fprintf(fp, "    je end%d\n", if_count);
+        gen(fp, node->rhs);
+        fprintf(fp, "end%d:\n", if_count);
+
+        ++if_count;
+        return;
+    }
 
     if (node->type == ND_RETURN)
     {

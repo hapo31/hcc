@@ -7,6 +7,8 @@ typedef enum
     TK_NUM = 256,
     TK_IDENT,  // 識別子
     TK_LABEL,  // ラベル
+    TK_IF,     // if
+    TK_ELSE,   // else
     TK_RETURN, // return
     TK_EQ,     // ==
     TK_NE,     // !=

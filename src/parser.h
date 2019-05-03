@@ -9,6 +9,8 @@ typedef enum
 {
     ND_NUM = 256,
     ND_IDENT,  // 識別子
+    ND_IF,     // if
+    ND_ELSE,   // else
     ND_RETURN, // return
     ND_EQ,     // ==
     ND_NE,     // !=

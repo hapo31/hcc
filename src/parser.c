@@ -213,12 +213,35 @@ Node *relational()
 Node *statement()
 {
     /**
+     * statement: if "(" assign ")" statement
+     * statement: if "(" assign ")" statement else statement
      * statement: "return" assign ";"
      * statement: asign ";"
      */
 
     Node *node = NULL;
-    if (consume(TK_RETURN))
+    if (consume(TK_IF))
+    {
+        if (consume('('))
+        {
+            node = assign();
+            if (!consume(')'))
+            {
+                error("if文が)で閉じられていません: %s\n", input());
+            }
+
+            return new_node(ND_IF, node, statement());
+        }
+        else
+        {
+            error("if文が(で始まっていません: %s\n", input());
+        }
+    }
+    else if (consume(TK_ELSE))
+    {
+        return new_node(ND_ELSE, statement(), NULL);
+    }
+    else if (consume(TK_RETURN))
     {
         node = ret();
         node->lhs = assign();
@@ -227,6 +250,7 @@ Node *statement()
     {
         node = assign();
     }
+
     if (!consume(';'))
     {
         error("式が ; で閉じられていません: %s\n", input());
