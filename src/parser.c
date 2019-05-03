@@ -119,13 +119,14 @@ Node *unary()
 Node *term()
 {
     /**
-     * term: "(" term ")"
      * term: num
      * term: ident
+     * term: "(" assign ")"
      */
     if (consume('('))
     {
         Node *node = assign();
+
         if (!consume(')'))
         {
             error("開きカッコに対応する閉じカッコがありません: %s", ((Token *)tokens->data[pos])->input);
@@ -144,6 +145,26 @@ Node *term()
     }
 
     error("数値でも開きカッコでもないトークンです: %s", ((Token *)tokens->data[pos])->input);
+}
+
+Node *equality()
+{
+    /**
+     * equality: relational
+     * equality: equality "==" relational
+     * equality: equality "!=" relational
+     */
+}
+
+Node *relational()
+{
+    /**
+     * relational: add
+     * relational: relational "<"  add
+     * relational: relational "<=" add
+     * relational: relational ">"  add
+     * relational: relational ">=" add
+     */
 }
 
 Node *statement()
