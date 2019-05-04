@@ -27,6 +27,9 @@ typedef struct tagNode
     struct tagNode *rhs;
     int value;
     char *name;
+    struct tagNode *condition;
+    struct tagNode *then;
+    struct tagNode *else_;
 } Node;
 
 Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);

@@ -69,6 +69,8 @@ try 1 'a = 10; b = 20; return a != b;'
 try 1 'a = 30; b = 20; return a >= b;'
 try 1 'a = 10; b = 20; return a <= b;'
 try 42 'if (0) return 1; return 42;'
+try 42 'if (0) return 0; else return 42;'
+try 42 'if (0) return 0; else return 42; return 1919;'
 
 echo ---------------------------------------------------------------------
 

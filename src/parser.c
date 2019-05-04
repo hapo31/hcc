@@ -37,6 +37,17 @@ Node *new_node_identifier(char *name)
     return node;
 }
 
+Node *new_if_node()
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_IF;
+    node->condition = NULL;
+    node->then = NULL;
+    node->else_ = NULL;
+
+    return node;
+}
+
 int consume(int type)
 {
     if (((Token *)tokens->data[pos])->type != type)
@@ -210,11 +221,40 @@ Node *relational()
     }
 }
 
+Node *if_statement()
+{
+    /**
+     * if_statement: "if" "(" cond ")" statement
+     * if_statement: "if" "(" cond ")" statement "else" else_statement
+     */
+    Node *node = new_if_node();
+    if (consume('('))
+    {
+        node->condition = assign();
+        if (!consume(')'))
+        {
+            error("if文が)で閉じられていません: %s\n", input());
+        }
+
+        node->then = statement();
+
+        if (consume(TK_ELSE))
+        {
+            node->else_ = statement();
+        }
+    }
+    else
+    {
+        error("if文が(で始まっていません: %s\n", input());
+    }
+
+    return node;
+}
+
 Node *statement()
 {
     /**
-     * statement: if "(" assign ")" statement
-     * statement: if "(" assign ")" statement else statement
+     * statement: if_statement
      * statement: "return" assign ";"
      * statement: asign ";"
      */
@@ -222,24 +262,7 @@ Node *statement()
     Node *node = NULL;
     if (consume(TK_IF))
     {
-        if (consume('('))
-        {
-            node = assign();
-            if (!consume(')'))
-            {
-                error("if文が)で閉じられていません: %s\n", input());
-            }
-
-            return new_node(ND_IF, node, statement());
-        }
-        else
-        {
-            error("if文が(で始まっていません: %s\n", input());
-        }
-    }
-    else if (consume(TK_ELSE))
-    {
-        return new_node(ND_ELSE, statement(), NULL);
+        return if_statement();
     }
     else if (consume(TK_RETURN))
     {

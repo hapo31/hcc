@@ -40,12 +40,26 @@ void gen(FILE *fp, Node *node)
 {
     if (node->type == ND_IF)
     {
-        gen(fp, node->lhs);
+        gen(fp, node->condition);
         fprintf(fp, "    pop rax\n");
         fprintf(fp, "    cmp rax, 0\n");
-        fprintf(fp, "    je end%d\n", if_count);
-        gen(fp, node->rhs);
-        fprintf(fp, "end%d:\n", if_count);
+        // else 節があるかどうか
+        if (node->else_ != NULL)
+        {
+            fprintf(fp, "    je .Lelse%d\n", else_count);
+            gen(fp, node->then);
+            fprintf(fp, "    jmp .Lend%d\n", if_count);
+            fprintf(fp, ".Lelse%d:\n", else_count);
+            gen(fp, node->else_);
+            fprintf(fp, ".Lend%d:\n", if_count);
+            ++else_count;
+        }
+        else
+        {
+            fprintf(fp, "    je .Lend%d\n", if_count);
+            gen(fp, node->then);
+            fprintf(fp, ".Lend%d:\n", if_count);
+        }
 
         ++if_count;
         return;
