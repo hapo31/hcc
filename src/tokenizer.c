@@ -25,7 +25,7 @@ TokenizeResult tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
-        if (strncmp(p, "if", 2) == 0)
+        if (strncmp(p, "if", 2) == 0 && !is_alpha_or_num(*(p + 2)))
         {
             token->type = TK_IF;
             token->input = p;
@@ -34,7 +34,7 @@ TokenizeResult tokenize(char *p)
             continue;
         }
 
-        if (strncmp(p, "else", 4) == 0)
+        if (strncmp(p, "else", 4) == 0 && !is_alpha_or_num(*(p + 4)))
         {
             token->type = TK_ELSE;
             token->input = p;
@@ -43,7 +43,7 @@ TokenizeResult tokenize(char *p)
             continue;
         }
 
-        if (strncmp(p, "goto", 4) == 0)
+        if (strncmp(p, "goto", 4) == 0 && !is_alpha_or_num(*(p + 4)))
         {
             token->type = TK_GOTO;
             token->input = p;
