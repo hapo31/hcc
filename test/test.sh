@@ -25,11 +25,14 @@ try() {
     actual="$?"
 
     test_count=$((test_count + 1))
+
+    echo -n "[$test_count] "
     if [ "$actual" = "$expected" ]; then
         echo -e "$(green "[OK]") $input => $actual"
 
     else
         echo -e "$(red "[NG]") $input => $actual (expected $expected)"
+        mv ./tmp.s ./${test_count}_tmp.s
         failed_count=$((failed_count + 1))
         return 1
     fi
