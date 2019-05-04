@@ -1,6 +1,7 @@
 *~
 *.o
 tmp*
+*_tmp*
 hcc
 ipch/
 test.a

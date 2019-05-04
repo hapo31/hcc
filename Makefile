@@ -31,4 +31,4 @@ test: hcc test.o vector.o map.o
 	./test/test.sh
 
 clean:
-	rm -f hcc test.a *.o *~ *_tmp*
+	rm -f hcc test.a *.o *~ tmp* *_tmp*
