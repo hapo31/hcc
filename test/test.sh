@@ -71,6 +71,7 @@ try 1 'a = 10; b = 20; return a <= b;'
 try 42 'if (0) return 1; return 42;'
 try 42 'if (0) return 0; else return 42;'
 try 42 'if (0) return 0; else return 42; return 1919;'
+try 42 'hoge = 10; fuga = 20; if (hoge > fuga) return 0; else return 42;'
 
 echo ---------------------------------------------------------------------
 
