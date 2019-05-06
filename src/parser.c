@@ -99,6 +99,7 @@ Node *mul()
      * mul: unary
      * mul: mul "*" unary
      * mul: mul "/" unary
+     * mul: mul "%" unary
      */
 
     Node *node = unary();
@@ -112,6 +113,10 @@ Node *mul()
         else if (consume('/'))
         {
             node = new_node('/', node, unary());
+        }
+        else if (consume('%'))
+        {
+            node = new_node('%', node, unary());
         }
         else
         {

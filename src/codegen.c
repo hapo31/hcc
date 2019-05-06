@@ -137,6 +137,11 @@ void gen(FILE *fp, Node *node)
         fprintf(fp, "    mov rdx, 0\n");
         fprintf(fp, "    div rdi\n");
         break;
+    case '%':
+        fprintf(fp, "    mov rdx, 0\n");
+        fprintf(fp, "    div rdi\n");
+        fprintf(fp, "    mov rax, rdx\n");
+        break;
     case ND_EQ:
         fprintf(fp, "    cmp rax, rdi\n");
         fprintf(fp, "    sete al\n");
