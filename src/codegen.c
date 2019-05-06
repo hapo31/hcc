@@ -6,6 +6,7 @@ Map *identifiers;
 Vector *code;
 int if_count = 0;
 int else_count = 0;
+int while_count = 0;
 
 void initial(FILE *fp)
 {
@@ -48,23 +49,36 @@ void gen(FILE *fp, Node *node)
         {
             fprintf(fp, "    je .Lelse%d\n", else_count);
             gen(fp, node->then);
-            fprintf(fp, "    jmp .Lend%d\n", if_count);
+            fprintf(fp, "    jmp .Lendif%d\n", if_count);
             fprintf(fp, ".Lelse%d:\n", else_count);
             gen(fp, node->else_);
-            fprintf(fp, ".Lend%d:\n", if_count);
+            fprintf(fp, ".Lendif%d:\n", if_count);
             ++else_count;
         }
         else
         {
-            fprintf(fp, "    je .Lend%d\n", if_count);
+            fprintf(fp, "    je .Lendif%d\n", if_count);
             gen(fp, node->then);
-            fprintf(fp, ".Lend%d:\n", if_count);
+            fprintf(fp, ".Lendif%d:\n", if_count);
         }
 
         ++if_count;
         return;
     }
 
+    if (node->type == ND_WHILE)
+    {
+        fprintf(fp, ".Lwhile%d:\n", while_count);
+        gen(fp, node->condition);
+        fprintf(fp, "    pop rax\n");
+        fprintf(fp, "    cmp rax, 0\n");
+        fprintf(fp, "    je .Lendwhile%d\n", while_count);
+        gen(fp, node->then);
+        fprintf(fp, "    jmp .Lwhile%d\n", while_count);
+        fprintf(fp, ".Lendwhile%d:\n", while_count);
+        ++while_count;
+        return;
+    }
     if (node->type == ND_RETURN)
     {
         gen(fp, node->lhs);

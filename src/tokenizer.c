@@ -31,6 +31,15 @@ TokenizeResult tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
+        if (keyword(p, "while"))
+        {
+            token->type = TK_WHILE;
+            token->input = p;
+            ++i;
+            p += 5;
+            continue;
+        }
+
         if (keyword(p, "if"))
         {
             token->type = TK_IF;

@@ -11,6 +11,7 @@ typedef enum
     ND_IDENT,  // 識別子
     ND_IF,     // if
     ND_ELSE,   // else
+    ND_WHILE,  // while
     ND_RETURN, // return
     ND_EQ,     // ==
     ND_NE,     // !=

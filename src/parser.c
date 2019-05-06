@@ -48,6 +48,16 @@ Node *new_if_node()
     return node;
 }
 
+Node *new_while_node()
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_WHILE;
+    node->condition = NULL;
+    node->then = NULL;
+
+    return node;
+}
+
 int consume(int type)
 {
     if (((Token *)tokens->data[pos])->type != type)
@@ -245,7 +255,31 @@ Node *if_statement()
     }
     else
     {
-        error("if文が(で始まっていません: %s\n", input());
+        error("if文のあとに(がありません: %s\n", input());
+    }
+
+    return node;
+}
+
+Node *while_statement()
+{
+    /**
+     * while "(" cond ")" statement
+     */
+
+    Node *node = new_while_node();
+    if (consume('('))
+    {
+        node->condition = assign();
+        if (!consume(')'))
+        {
+            error("while文が)で閉じられていません: %s\n", input());
+        }
+        node->then = statement();
+    }
+    else
+    {
+        error("while文のあとに(がありません: %s\n", input());
     }
 
     return node;
@@ -255,6 +289,7 @@ Node *statement()
 {
     /**
      * statement: if_statement
+     * statement: while_statement
      * statement: "return" assign ";"
      * statement: asign ";"
      */
@@ -263,6 +298,10 @@ Node *statement()
     if (consume(TK_IF))
     {
         return if_statement();
+    }
+    else if (consume(TK_WHILE))
+    {
+        return while_statement();
     }
     else if (consume(TK_RETURN))
     {
