@@ -7,6 +7,7 @@ Vector *code;
 int if_count = 0;
 int else_count = 0;
 int while_count = 0;
+int for_count = 0;
 
 void initial(FILE *fp)
 {
@@ -79,6 +80,24 @@ void gen(FILE *fp, Node *node)
         ++while_count;
         return;
     }
+
+    if (node->type == ND_FOR)
+    {
+        gen(fp, node->init_expression);
+        fprintf(fp, ".Lfor%d:\n", for_count);
+        gen(fp, node->condition);
+        fprintf(fp, "    pop rax\n");
+        fprintf(fp, "    cmp rax, 0\n");
+        fprintf(fp, "    je .Lforend%d\n", for_count);
+        gen(fp, node->then);
+        gen(fp, node->loop_expression);
+        fprintf(fp, "    jmp .Lfor%d\n", for_count);
+        fprintf(fp, ".Lforend%d:\n", for_count);
+
+        ++for_count;
+        return;
+    }
+
     if (node->type == ND_RETURN)
     {
         gen(fp, node->lhs);

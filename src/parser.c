@@ -50,7 +50,8 @@ Node *new_if_node()
 
 Node *new_for_node()
 {
-    Node *node = (Token *)malloc(sizeof(Token));
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_FOR;
     node->then = NULL;
     node->init_expression = NULL;
     node->loop_expression = NULL;
@@ -281,6 +282,29 @@ Node *for_statement()
     /**
      * for "(" init_expression ";" cond ";" loop_expression ")" statement
      */
+    Node *node = new_for_node();
+    if (consume('('))
+    {
+        node->init_expression = assign();
+        if (consume(';'))
+        {
+            node->condition = assign();
+            if (consume(';'))
+            {
+                node->loop_expression = assign();
+                if (consume(')'))
+                {
+                    node->then = statement();
+
+                    return node;
+                }
+            }
+        }
+    }
+    error("for文に誤りがあります: %s\n", input());
+
+    // ここには来ない
+    return NULL;
 }
 
 Node *while_statement()

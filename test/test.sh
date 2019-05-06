@@ -76,7 +76,7 @@ try 42 'if (0) return 0; else return 42; return 1919;'
 try 42 'hoge = 10; fuga = 20; if (hoge > fuga) return 0; else return 42;'
 try 42 'n = 0; while (n < 42) n = n + 1; return n;'
 try 0 'n = 42; while (n > 0) n = n - 1; return n;'
-try 10 'result = 0; if (n = 0; n < 10; n = n + 1) result = result + n; return result;'
+try 45 'result = 0; for (n = 0; n < 10; n = n + 1) result = result + n; return result;'
 
 
 echo ---------------------------------------------------------------------
