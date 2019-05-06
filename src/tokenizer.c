@@ -7,6 +7,12 @@
 #include "tokenizer.h"
 #include "utils.h"
 
+bool keyword(const char *src, const char *keyword)
+{
+    size_t len = strlen(keyword);
+    return strncmp(src, keyword, len) == 0 && !is_alpha_or_num(*(src + len));
+}
+
 TokenizeResult tokenize(char *p)
 {
     Vector *tokens = new_vector(100);
@@ -25,7 +31,7 @@ TokenizeResult tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
-        if (strncmp(p, "if", 2) == 0 && !is_alpha_or_num(*(p + 2)))
+        if (keyword(p, "if"))
         {
             token->type = TK_IF;
             token->input = p;
@@ -34,7 +40,7 @@ TokenizeResult tokenize(char *p)
             continue;
         }
 
-        if (strncmp(p, "else", 4) == 0 && !is_alpha_or_num(*(p + 4)))
+        if (keyword(p, "else"))
         {
             token->type = TK_ELSE;
             token->input = p;
@@ -43,7 +49,7 @@ TokenizeResult tokenize(char *p)
             continue;
         }
 
-        if (strncmp(p, "goto", 4) == 0 && !is_alpha_or_num(*(p + 4)))
+        if (keyword(p, "goto"))
         {
             token->type = TK_GOTO;
             token->input = p;
@@ -53,7 +59,7 @@ TokenizeResult tokenize(char *p)
         }
 
         // returnキーワードのあとにアルファベット、数字、アンダースコアが来ていないかを調べる
-        if (strncmp(p, "return", 6) == 0 && !is_alpha_or_num(*(p + 6)))
+        if (keyword(p, "return"))
         {
             token->type = TK_RETURN;
             token->input = p;
