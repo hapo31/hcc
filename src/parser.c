@@ -48,6 +48,16 @@ Node *new_if_node()
     return node;
 }
 
+Node *new_for_node()
+{
+    Node *node = (Token *)malloc(sizeof(Token));
+    node->then = NULL;
+    node->init_expression = NULL;
+    node->loop_expression = NULL;
+
+    return node;
+}
+
 Node *new_while_node()
 {
     Node *node = (Node *)malloc(sizeof(Node));
@@ -266,6 +276,13 @@ Node *if_statement()
     return node;
 }
 
+Node *for_statement()
+{
+    /**
+     * for "(" init_expression ";" cond ";" loop_expression ")" statement
+     */
+}
+
 Node *while_statement()
 {
     /**
@@ -295,6 +312,7 @@ Node *statement()
     /**
      * statement: if_statement
      * statement: while_statement
+     * statement: for_statement
      * statement: "return" assign ";"
      * statement: asign ";"
      */
@@ -303,6 +321,10 @@ Node *statement()
     if (consume(TK_IF))
     {
         return if_statement();
+    }
+    else if (consume(TK_FOR))
+    {
+        return for_statement();
     }
     else if (consume(TK_WHILE))
     {

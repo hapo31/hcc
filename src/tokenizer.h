@@ -9,6 +9,7 @@ typedef enum
     TK_LABEL,  // ラベル
     TK_IF,     // if
     TK_ELSE,   // else
+    TK_FOR,    // for
     TK_WHILE,  // while
     TK_RETURN, // return
     TK_EQ,     // ==
