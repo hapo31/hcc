@@ -63,6 +63,8 @@ int main()
   put_map(map, "hoge", (void *)1919);
   expect(__LINE__, 1919, (int)read_map(map, "hoge"));
 
+  printf("---------------------------------------------------------------------\n");
+
   print_success();
   if (failed_count >= 1)
   {
