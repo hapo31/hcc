@@ -1,4 +1,4 @@
-CFLAGS=-O0
+CFLAGS=-O0 -g
 
 hcc: hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
 	gcc -o hcc hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
