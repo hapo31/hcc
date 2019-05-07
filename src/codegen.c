@@ -28,18 +28,18 @@ void emit(const char *fmt, ...)
 
 void initial(FILE *fp)
 {
-    emit(".intel_syntax noprefix\n");
-    emit(".global main\n");
-    emit("main: \n");
+    emit(".intel_syntax noprefix");
+    emit(".global main");
+    emit("main: ");
 }
 
 void prologue(FILE *fp)
 {
     // プロローグ
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
-    emit("    push rbp\n");
-    emit("    mov rbp, rsp\n");
-    emit("    sub rsp, %ld\n", identifiers->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("    push rbp");
+    emit("    mov rbp, rsp");
+    emit("    sub rsp, %ld", identifiers->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -50,9 +50,9 @@ void gen_lvalue(Node *node)
     }
     int ident_index = (int)read_map(identifiers, node->name);
     int offset = ident_index * VAR_SIZE;
-    emit("    mov rax, rbp\n");
-    emit("    sub rax, %d\n", offset);
-    emit("    push rax\n");
+    emit("    mov rax, rbp");
+    emit("    sub rax, %d", offset);
+    emit("    push rax");
 }
 
 void gen(Node *node)
@@ -60,24 +60,24 @@ void gen(Node *node)
     if (node->type == ND_IF)
     {
         gen(node->condition);
-        emit("    pop rax\n");
-        emit("    cmp rax, 0\n");
+        emit("    pop rax");
+        emit("    cmp rax, 0");
         // else 節があるかどうか
         if (node->else_ != NULL)
         {
-            emit("    je .Lelse%d\n", else_count);
+            emit("    je .Lelse%d", else_count);
             gen(node->then);
-            emit("    jmp .Lendif%d\n", if_count);
-            emit(".Lelse%d:\n", else_count);
+            emit("    jmp .Lendif%d", if_count);
+            emit(".Lelse%d:", else_count);
             gen(node->else_);
-            emit(".Lendif%d:\n", if_count);
+            emit(".Lendif%d:", if_count);
             ++else_count;
         }
         else
         {
-            emit("    je .Lendif%d\n", if_count);
+            emit("    je .Lendif%d", if_count);
             gen(node->then);
-            emit(".Lendif%d:\n", if_count);
+            emit(".Lendif%d:", if_count);
         }
 
         ++if_count;
@@ -86,14 +86,14 @@ void gen(Node *node)
 
     if (node->type == ND_WHILE)
     {
-        emit(".Lwhile%d:\n", while_count);
+        emit(".Lwhile%d:", while_count);
         gen(node->condition);
-        emit("    pop rax\n");
-        emit("    cmp rax, 0\n");
-        emit("    je .Lendwhile%d\n", while_count);
+        emit("    pop rax");
+        emit("    cmp rax, 0");
+        emit("    je .Lendwhile%d", while_count);
         gen(node->then);
-        emit("    jmp .Lwhile%d\n", while_count);
-        emit(".Lendwhile%d:\n", while_count);
+        emit("    jmp .Lwhile%d", while_count);
+        emit(".Lendwhile%d:", while_count);
         ++while_count;
         return;
     }
@@ -101,15 +101,15 @@ void gen(Node *node)
     if (node->type == ND_FOR)
     {
         gen(node->init_expression);
-        emit(".Lfor%d:\n", for_count);
+        emit(".Lfor%d:", for_count);
         gen(node->condition);
-        emit("    pop rax\n");
-        emit("    cmp rax, 0\n");
-        emit("    je .Lforend%d\n", for_count);
+        emit("    pop rax");
+        emit("    cmp rax, 0");
+        emit("    je .Lforend%d", for_count);
         gen(node->then);
         gen(node->loop_expression);
-        emit("    jmp .Lfor%d\n", for_count);
-        emit(".Lforend%d:\n", for_count);
+        emit("    jmp .Lfor%d", for_count);
+        emit(".Lforend%d:", for_count);
 
         ++for_count;
         return;
@@ -118,25 +118,25 @@ void gen(Node *node)
     if (node->type == ND_RETURN)
     {
         gen(node->lhs);
-        emit("    pop rax\n");
-        emit("    mov rsp, rbp\n");
-        emit("    pop rbp\n");
-        emit("    ret\n");
+        emit("    pop rax");
+        emit("    mov rsp, rbp");
+        emit("    pop rbp");
+        emit("    ret");
         return;
     }
 
     if (node->type == ND_NUM)
     {
-        emit("    push %d\n", node->value);
+        emit("    push %d", node->value);
         return;
     }
 
     if (node->type == ND_IDENT)
     {
         gen_lvalue(node);
-        emit("    pop rax\n");
-        emit("    mov rax, [rax]\n");
-        emit("    push rax\n");
+        emit("    pop rax");
+        emit("    mov rax, [rax]");
+        emit("    push rax");
         return;
     }
 
@@ -145,74 +145,74 @@ void gen(Node *node)
         gen_lvalue(node->lhs);
         gen(node->rhs);
 
-        emit("    pop rdi\n");
-        emit("    pop rax\n");
-        emit("    mov [rax], rdi\n");
-        emit("    push rdi\n");
+        emit("    pop rdi");
+        emit("    pop rax");
+        emit("    mov [rax], rdi");
+        emit("    push rdi");
         return;
     }
 
     gen(node->lhs);
     gen(node->rhs);
 
-    emit("    pop rdi\n");
-    emit("    pop rax\n");
+    emit("    pop rdi");
+    emit("    pop rax");
 
     switch (node->type)
     {
     case '+':
-        emit("    add rax, rdi\n");
+        emit("    add rax, rdi");
         break;
     case '-':
-        emit("    sub rax, rdi\n");
+        emit("    sub rax, rdi");
         break;
     case '*':
-        emit("    mul rdi\n");
+        emit("    mul rdi");
         break;
     case '/':
-        emit("    mov rdx, 0\n");
-        emit("    div rdi\n");
+        emit("    mov rdx, 0");
+        emit("    div rdi");
         break;
     case '%':
-        emit("    mov rdx, 0\n");
-        emit("    div rdi\n");
-        emit("    mov rax, rdx\n");
+        emit("    mov rdx, 0");
+        emit("    div rdi");
+        emit("    mov rax, rdx");
         break;
     case ND_EQ:
-        emit("    cmp rax, rdi\n");
-        emit("    sete al\n");
-        emit("    movzb rax, al\n");
+        emit("    cmp rax, rdi");
+        emit("    sete al");
+        emit("    movzb rax, al");
         break;
     case ND_NE:
-        emit("    cmp rax, rdi\n");
-        emit("    setne al\n");
-        emit("    movzb rax, al\n");
+        emit("    cmp rax, rdi");
+        emit("    setne al");
+        emit("    movzb rax, al");
         break;
     case ND_LE:
-        emit("    cmp rax, rdi\n");
-        emit("    setle al\n");
-        emit("    movzb rax, al\n");
+        emit("    cmp rax, rdi");
+        emit("    setle al");
+        emit("    movzb rax, al");
         break;
     case ND_LT:
-        emit("    cmp rax, rdi\n");
-        emit("    setl al\n");
-        emit("    movzb rax, al\n");
+        emit("    cmp rax, rdi");
+        emit("    setl al");
+        emit("    movzb rax, al");
         break;
     default:
         break;
     }
 
-    emit("    push rax\n");
+    emit("    push rax");
 }
 
 void epilogue(FILE *fp)
 {
     // エピローグ
 
-    emit("    mov rsp, rbp\n");
-    emit("    pop rbp\n");
+    emit("    mov rsp, rbp");
+    emit("    pop rbp");
     // rax に演算結果が残っているので、それがこのプログラムの出力になる
-    emit("    ret\n");
+    emit("    ret");
 }
 
 void codegen(FILE *fp, ParseResult *parse_result)
@@ -230,7 +230,7 @@ void codegen(FILE *fp, ParseResult *parse_result)
         gen(code->data[i]);
 
         // スタックに式の評価結果が乗っているので pop しておく
-        emit("    pop rax\n");
+        emit("    pop rax");
     }
 
     epilogue(fp);
