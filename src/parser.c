@@ -69,6 +69,15 @@ Node *new_while_node()
     return node;
 }
 
+Node *new_block_node()
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_BLOCK;
+    node->block_items = new_vector(1);
+
+    return node;
+}
+
 int consume(int type)
 {
     if (((Token *)tokens->data[pos])->type != type)
@@ -331,9 +340,32 @@ Node *while_statement()
     return node;
 }
 
+Node *block_items()
+{
+    /**
+     * block_items: statement
+     * block_items: statement block_items
+     */
+    Node *node = new_block_node();
+
+    while (((Token *)tokens->data[pos])->type != '}')
+    {
+        if (((Token *)tokens->data[pos])->type == TK_EOF)
+        {
+            error("ブロックが閉じられていません: %s\n", input());
+        }
+        push_vector(node->block_items, statement());
+    }
+
+    // "}" の次を指すようにしておく
+    ++pos;
+    return node;
+}
+
 Node *statement()
 {
     /**
+     * statement: "{" block_items "}"
      * statement: if_statement
      * statement: while_statement
      * statement: for_statement
@@ -342,7 +374,11 @@ Node *statement()
      */
 
     Node *node = NULL;
-    if (consume(TK_IF))
+    if (consume('{'))
+    {
+        return block_items();
+    }
+    else if (consume(TK_IF))
     {
         return if_statement();
     }
@@ -403,12 +439,11 @@ void program()
      * program: statement program
      * program: ε
      */
-    int i = 0;
+
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
         Node *node = statement();
         push_vector(code, node);
-        ++i;
     }
 }
 

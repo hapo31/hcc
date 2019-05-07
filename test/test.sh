@@ -79,7 +79,8 @@ try 0 'n = 42; while (n > 0) n = n - 1; return n;'
 try 45 'result = 0; for (n = 0; n < 10; n = n + 1) result = result + n; return result;'
 try 120 '(((((((((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 10) + 11) + 12) + 13) + 14) + 15));'
 try 10 'super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww = 10; return super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;'
-
+try 10 'x = 0; if(x == 0) { y = x + 10; return y; } else { return x; }'
+try 20 'x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y;'
 
 echo ---------------------------------------------------------------------
 

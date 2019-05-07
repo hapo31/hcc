@@ -14,6 +14,7 @@ typedef enum
     ND_FOR,    // for
     ND_WHILE,  // while
     ND_RETURN, // return
+    ND_BLOCK,  // {}
     ND_EQ,     // ==
     ND_NE,     // !=
     ND_GE,     // <=
@@ -29,6 +30,8 @@ typedef struct tagNode
     struct tagNode *rhs;
     int value;
     char *name;
+    Vector *block_items;
+
     struct tagNode *then;
 
     // for "if" statement

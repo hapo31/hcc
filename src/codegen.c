@@ -57,6 +57,23 @@ void gen_lvalue(Node *node)
 
 void gen(Node *node)
 {
+    if (node == NULL)
+    {
+        error("internal error: node is null.\n");
+    }
+
+    if (node->type == ND_BLOCK)
+    {
+        for (int i = 0; i < node->block_items->len; ++i)
+        {
+            Node *block_node = (Node *)node->block_items->data[i];
+            gen(block_node);
+            emit("    pop rax");
+        }
+
+        return;
+    }
+
     if (node->type == ND_IF)
     {
         gen(node->condition);
