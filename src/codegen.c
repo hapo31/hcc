@@ -1,7 +1,8 @@
-#include "codegen.h"
-
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
+
+#include "codegen.h"
 
 void emit(const char *fmt, ...);
 void initial(FILE *fp);
@@ -48,7 +49,7 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    int ident_index = (int)read_map(identifiers, node->name);
+    int ident_index = (intptr_t)read_map(identifiers, node->name);
     int offset = ident_index * VAR_SIZE;
     emit("    mov rax, rbp");
     emit("    sub rax, %d", offset);

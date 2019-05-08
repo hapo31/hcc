@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 
 #include "../src/vector.h"
 #include "../src/map.h"
@@ -54,14 +55,14 @@ int main()
   expect(__LINE__, NULL, read_map(map, "hoge"));
   expect(__LINE__, 0, contains_map(map, "hoge"));
 
-  put_map(map, "hoge", (void *)114514);
-  put_map(map, "fuga", (void *)8101919);
+  put_map(map, "hoge", (void *)(intptr_t)114514);
+  put_map(map, "fuga", (void *)(intptr_t)8101919);
   expect(__LINE__, 2, map->len);
   expect(__LINE__, 1, contains_map(map, "hoge"));
-  expect(__LINE__, 114514, (int)read_map(map, "hoge"));
-  expect(__LINE__, 8101919, (int)read_map(map, "fuga"));
-  put_map(map, "hoge", (void *)1919);
-  expect(__LINE__, 1919, (int)read_map(map, "hoge"));
+  expect(__LINE__, 114514, (intptr_t)read_map(map, "hoge"));
+  expect(__LINE__, 8101919, (intptr_t)read_map(map, "fuga"));
+  put_map(map, "hoge", (void *)(intptr_t)1919);
+  expect(__LINE__, 1919, (intptr_t)read_map(map, "hoge"));
 
   printf("---------------------------------------------------------------------\n");
 
