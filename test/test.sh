@@ -16,9 +16,15 @@ red() {
 }
 
 try() {
-    expected="$1"
-    input="$2"
-    ./hcc "$input" > tmp.s
+    mode="$1"
+    expected="$2"
+    input="$3"
+
+    if [ $mode = '-i' ]; then
+        ./hcc -i "$input" > tmp.s
+    else
+        ./hcc "$input" > tmp.s
+    fi
     gcc -o tmp tmp.s
 
     ./tmp
@@ -38,49 +44,50 @@ try() {
     fi
 }
 
-try 0 '0;'
-try 42 '42;'
-try 24 '12+14-2;'
-try 10 '5 + 4 + 3 - 2;'
-try 20 '(1 + 4) * 4;'
-try 3 '3 * 3 / 3;'
-try 0 '0 / 1;'
-try 100 '1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1;'
-try 12 'a=6+6; return a;'
-try 10 'a = 5; b = a + 5; return b;'
-try 20 'hoge = 10; fuga = hoge + 10; return fuga;'
-try 20 'a = 1; b = 1; c = a + b; c = c * 10; return c;'
-try 5 'return 15 % 10;'
-try 5 'return 5 % 10;'
-try 10 'return -15 + (+25);'
-try 0 'a = -5; b = 5; return a + b;'
-try 1 'return 5 == 5;'
-try 0 'return 4 == 3;'
-try 1 'return 10 != 0;'
-try 0 'return 20 != 20;'
-try 1 'return 5 >= 4;'
-try 0 'return 5 >= 6;'
-try 1 'return 4 <= 5;'
-try 0 'return 5 <= 4;'
-try 1 'return 5 > 4;'
-try 0 'return 5 > 5;'
-try 1 'return 4 < 5;'
-try 0 'return 5 < 4;'
-try 1 'a = 10; b = 10; return a == b;'
-try 1 'a = 10; b = 20; return a != b;'
-try 1 'a = 30; b = 20; return a >= b;'
-try 1 'a = 10; b = 20; return a <= b;'
-try 42 'if (0) return 1; return 42;'
-try 42 'if (0) return 0; else return 42;'
-try 42 'if (0) return 0; else return 42; return 1919;'
-try 42 'hoge = 10; fuga = 20; if (hoge > fuga) return 0; else return 42;'
-try 42 'n = 0; while (n < 42) n = n + 1; return n;'
-try 0 'n = 42; while (n > 0) n = n - 1; return n;'
-try 45 'result = 0; for (n = 0; n < 10; n = n + 1) result = result + n; return result;'
-try 120 '(((((((((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 10) + 11) + 12) + 13) + 14) + 15));'
-try 10 'super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww = 10; return super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;'
-try 10 'x = 0; if(x == 0) { y = x + 10; return y; } else { return x; }'
-try 20 'x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y;'
+try -i 0 '0;'
+try -i 42 '42;'
+try -i 24 '12+14-2;'
+try -i 10 '5 + 4 + 3 - 2;'
+try -i 20 '(1 + 4) * 4;'
+try -i 3 '3 * 3 / 3;'
+try -i 0 '0 / 1;'
+try -i 100 '1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1;'
+try -i 12 'a=6+6; return a;'
+try -i 10 'a = 5; b = a + 5; return b;'
+try -i 20 'hoge = 10; fuga = hoge + 10; return fuga;'
+try -i 20 'a = 1; b = 1; c = a + b; c = c * 10; return c;'
+try -i 5 'return 15 % 10;'
+try -i 5 'return 5 % 10;'
+try -i 10 'return -15 + (+25);'
+try -i 0 'a = -5; b = 5; return a + b;'
+try -i 1 'return 5 == 5;'
+try -i 0 'return 4 == 3;'
+try -i 1 'return 10 != 0;'
+try -i 0 'return 20 != 20;'
+try -i 1 'return 5 >= 4;'
+try -i 0 'return 5 >= 6;'
+try -i 1 'return 4 <= 5;'
+try -i 0 'return 5 <= 4;'
+try -i 1 'return 5 > 4;'
+try -i 0 'return 5 > 5;'
+try -i 1 'return 4 < 5;'
+try -i 0 'return 5 < 4;'
+try -i 1 'a = 10; b = 10; return a == b;'
+try -i 1 'a = 10; b = 20; return a != b;'
+try -i 1 'a = 30; b = 20; return a >= b;'
+try -i 1 'a = 10; b = 20; return a <= b;'
+try -i 42 'if (0) return 1; return 42;'
+try -i 42 'if (0) return 0; else return 42;'
+try -i 42 'if (0) return 0; else return 42; return 1919;'
+try -i 42 'hoge = 10; fuga = 20; if (hoge > fuga) return 0; else return 42;'
+try -i 42 'n = 0; while (n < 42) n = n + 1; return n;'
+try -i 0 'n = 42; while (n > 0) n = n - 1; return n;'
+try -i 45 'result = 0; for (n = 0; n < 10; n = n + 1) result = result + n; return result;'
+try -i 120 '(((((((((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 10) + 11) + 12) + 13) + 14) + 15));'
+try -i 10 'super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww = 10; return super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;'
+try -i 10 'x = 0; if(x == 0) { y = x + 10; return y; } else { return x; }'
+try -i 20 'x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y;'
+try -f 42 ./test/test_file.c
 
 echo ---------------------------------------------------------------------
 

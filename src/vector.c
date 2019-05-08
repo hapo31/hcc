@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdint.h>
+
 #include "vector.h"
 
 Vector *new_vector(int capacity)
