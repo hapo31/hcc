@@ -77,59 +77,61 @@ void gen(Node *node)
 
     if (node->type == ND_IF)
     {
+        int local_if_count = if_count;
+        ++if_count;
         gen(node->condition);
         emit("    pop rax");
         emit("    cmp rax, 0");
         // else 節があるかどうか
         if (node->else_ != NULL)
         {
-            emit("    je .Lelse%d", else_count);
-            gen(node->then);
-            emit("    jmp .Lendif%d", if_count);
-            emit(".Lelse%d:", else_count);
-            gen(node->else_);
-            emit(".Lendif%d:", if_count);
+            int else_count_local = else_count;
             ++else_count;
+            emit("    je .Lelse%d", else_count_local);
+            gen(node->then);
+            emit("    jmp .Lendif%d", local_if_count);
+            emit(".Lelse%d:", else_count_local);
+            gen(node->else_);
+            emit(".Lendif%d:", local_if_count);
         }
         else
         {
-            emit("    je .Lendif%d", if_count);
+            emit("    je .Lendif%d", local_if_count);
             gen(node->then);
-            emit(".Lendif%d:", if_count);
+            emit(".Lendif%d:", local_if_count);
         }
-
-        ++if_count;
         return;
     }
 
     if (node->type == ND_WHILE)
     {
-        emit(".Lwhile%d:", while_count);
+        int while_count_local = while_count;
+        ++while_count;
+        emit(".Lwhile%d:", while_count_local);
         gen(node->condition);
         emit("    pop rax");
         emit("    cmp rax, 0");
-        emit("    je .Lendwhile%d", while_count);
+        emit("    je .Lendwhile%d", while_count_local);
         gen(node->then);
-        emit("    jmp .Lwhile%d", while_count);
-        emit(".Lendwhile%d:", while_count);
-        ++while_count;
+        emit("    jmp .Lwhile%d", while_count_local);
+        emit(".Lendwhile%d:", while_count_local);
         return;
     }
 
     if (node->type == ND_FOR)
     {
+        int for_count_local = for_count;
+        ++for_count;
         gen(node->init_expression);
-        emit(".Lfor%d:", for_count);
+        emit(".Lfor%d:", for_count_local);
         gen(node->condition);
         emit("    pop rax");
         emit("    cmp rax, 0");
-        emit("    je .Lforend%d", for_count);
+        emit("    je .Lforend%d", for_count_local);
         gen(node->then);
         gen(node->loop_expression);
-        emit("    jmp .Lfor%d", for_count);
-        emit(".Lforend%d:", for_count);
-
-        ++for_count;
+        emit("    jmp .Lfor%d", for_count_local);
+        emit(".Lforend%d:", for_count_local);
         return;
     }
 
