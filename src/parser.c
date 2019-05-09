@@ -1,11 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
 #include "parser.h"
 
 Vector *tokens;
 Vector *code;
 
 int pos = 0;
+
+char *input();
+
+Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
+Node *new_node_num(int value);
+Node *new_node_identifier(char *name);
+Node *new_if_node();
+Node *new_for_node();
+Node *new_while_node();
+Node *new_block_node();
+
+bool consume(int type);
+Node *add();
+Node *mul();
+Node *unary();
+Node *term();
+Node *assign();
+Node *equality();
+Node *relational();
+Node *for_statement();
+Node *if_statement();
+Node *while_statement();
+Node *block_items();
+Node *statement();
+Node *expression();
+Node *function();
+Node *ret();
+
+void program();
 
 char *input()
 {
@@ -78,14 +109,14 @@ Node *new_block_node()
     return node;
 }
 
-int consume(int type)
+bool consume(int type)
 {
     if (((Token *)tokens->data[pos])->type != type)
     {
-        return 0;
+        return false;
     }
     ++pos;
-    return 1;
+    return true;
 }
 
 Node *add()
@@ -172,11 +203,11 @@ Node *term()
     /**
      * term: num
      * term: ident
-     * term: "(" assign ")"
+     * term: "(" expression ")"
      */
     if (consume('('))
     {
-        Node *node = assign();
+        Node *node = expression();
 
         if (!consume(')'))
         {
@@ -185,14 +216,14 @@ Node *term()
         return node;
     }
 
-    if (((Token *)tokens->data[pos])->type == TK_NUM)
+    if (consume(TK_NUM))
     {
-        return new_node_num(((Token *)tokens->data[pos++])->value);
+        return new_node_num(((Token *)tokens->data[pos - 1])->value);
     }
 
-    if (((Token *)tokens->data[pos])->type == TK_IDENT)
+    if (consume(TK_IDENT))
     {
-        return new_node_identifier(((Token *)tokens->data[pos++])->identifier);
+        return new_node_identifier(((Token *)tokens->data[pos - 1])->identifier);
     }
 
     error("数値でも開きカッコでもないトークンです: %s", input());
@@ -265,7 +296,7 @@ Node *if_statement()
     Node *node = new_if_node();
     if (consume('('))
     {
-        node->condition = assign();
+        node->condition = expression();
         if (!consume(')'))
         {
             error("if文が)で閉じられていません: %s\n", input());
@@ -294,13 +325,13 @@ Node *for_statement()
     Node *node = new_for_node();
     if (consume('('))
     {
-        node->init_expression = assign();
+        node->init_expression = expression();
         if (consume(';'))
         {
-            node->condition = assign();
+            node->condition = expression();
             if (consume(';'))
             {
-                node->loop_expression = assign();
+                node->loop_expression = expression();
                 if (consume(')'))
                 {
                     node->then = statement();
@@ -325,7 +356,7 @@ Node *while_statement()
     Node *node = new_while_node();
     if (consume('('))
     {
-        node->condition = assign();
+        node->condition = expression();
         if (!consume(')'))
         {
             error("while文が)で閉じられていません: %s\n", input());
@@ -369,8 +400,8 @@ Node *statement()
      * statement: if_statement
      * statement: while_statement
      * statement: for_statement
-     * statement: "return" assign ";"
-     * statement: asign ";"
+     * statement: "return" expression ";"
+     * statement: expression ";"
      */
 
     Node *node = NULL;
@@ -406,6 +437,29 @@ Node *statement()
     }
 
     return node;
+}
+
+Node *expression()
+{
+    /**
+     * expression: assign
+     * expression: assign "=" expression
+     * expression: assign "=" function
+     */
+    Node *node = assign();
+    while (consume('='))
+    {
+        node = new_node('=', node, expression());
+    }
+
+    return node;
+}
+
+Node *function()
+{
+    /**
+     * function: ident "(" ")"
+     */
 }
 
 Node *assign()

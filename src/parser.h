@@ -43,23 +43,6 @@ typedef struct tagNode
 
 } Node;
 
-Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
-Node *new_node_num(int value);
-Node *new_node_identifier(char *name);
-
-int consume(int type);
-Node *add();
-Node *mul();
-Node *unary();
-Node *term();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *statement();
-Node *ret();
-
-void program();
-
 typedef struct
 {
     Vector *code;
