@@ -27,7 +27,7 @@ hcc.o: src/hcc.c
 test.o:
 	gcc -c test/test.c $(CFLAGS)
 
-test: hcc test.o vector.o map.o
+test: hcc ./test/test.sh test.o vector.o map.o
 	gcc -o test.a test.o vector.o map.o
 	./test.a
 	./test/test.sh
