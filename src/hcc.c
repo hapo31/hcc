@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     {
         printf("Usase:\n");
         printf("\t./hcc [source_file]\n");
-        printf("\t./hcc -i [souce_code]\n");
+        printf("\t./hcc -i [source_code]\n");
         return 1;
     }
 
