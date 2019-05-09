@@ -8,19 +8,20 @@
 typedef enum
 {
     ND_NUM = 256,
-    ND_IDENT,  // 識別子
-    ND_IF,     // if
-    ND_ELSE,   // else
-    ND_FOR,    // for
-    ND_WHILE,  // while
-    ND_RETURN, // return
-    ND_BLOCK,  // {}
-    ND_EQ,     // ==
-    ND_NE,     // !=
-    ND_GE,     // <=
-    ND_LE,     // >=
-    ND_LT,     // >
-    ND_GT,     // <
+    ND_IDENT,        // 識別子
+    ND_CALL_FUCTION, // 関数呼び出し
+    ND_IF,           // if
+    ND_ELSE,         // else
+    ND_FOR,          // for
+    ND_WHILE,        // while
+    ND_RETURN,       // return
+    ND_BLOCK,        // {}
+    ND_EQ,           // ==
+    ND_NE,           // !=
+    ND_GE,           // <=
+    ND_LE,           // >=
+    ND_LT,           // >
+    ND_GT,           // <
 } NODE_TYPE;
 
 typedef struct tagNode
