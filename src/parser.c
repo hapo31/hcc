@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "parser.h"
 
 Vector *tokens;
 Vector *code;
+
+Map *variables;
+Map *functions;
 
 int pos = 0;
 
@@ -14,6 +18,7 @@ char *input();
 Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name);
+Node *new_node_call_function(char *name);
 Node *new_if_node();
 Node *new_for_node();
 Node *new_while_node();
@@ -24,7 +29,6 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *term();
-Node *assign();
 Node *equality();
 Node *relational();
 Node *for_statement();
@@ -33,7 +37,7 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
-Node *function();
+// Node *function();
 Node *ret();
 
 void program();
@@ -64,6 +68,14 @@ Node *new_node_identifier(char *name)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_IDENT;
+    node->name = name;
+    return node;
+}
+
+Node *new_node_call_function(char *name)
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_CALL_FUCTION;
     node->name = name;
     return node;
 }
@@ -223,7 +235,13 @@ Node *term()
 
     if (consume(TK_IDENT))
     {
-        return new_node_identifier(((Token *)tokens->data[pos - 1])->identifier);
+        char *identifier = ((Token *)tokens->data[pos - 1])->identifier;
+        if (!contains_map(variables, identifier))
+        {
+            int len = variables->len;
+            put_map(variables, identifier, (void *)(intptr_t)len);
+        }
+        return new_node_identifier(identifier);
     }
 
     error("数値でも開きカッコでもないトークンです: %s", input());
@@ -424,11 +442,11 @@ Node *statement()
     else if (consume(TK_RETURN))
     {
         node = ret();
-        node->lhs = assign();
+        node->lhs = expression();
     }
     else
     {
-        node = assign();
+        node = expression();
     }
 
     if (!consume(';'))
@@ -442,11 +460,22 @@ Node *statement()
 Node *expression()
 {
     /**
-     * expression: assign
-     * expression: assign "=" expression
-     * expression: assign "=" function
+     * expression: equality
+     * expression: function
+     * expression: equality "=" expression
      */
-    Node *node = assign();
+
+    Node *node;
+
+    // if (((Token *)tokens->data[pos + 1])->type == '(')
+    // {
+    //     node = function();
+    // }
+    // else
+    {
+        node = equality();
+    }
+
     while (consume('='))
     {
         node = new_node('=', node, expression());
@@ -455,27 +484,22 @@ Node *expression()
     return node;
 }
 
-Node *function()
-{
-    /**
-     * function: ident "(" ")"
-     */
-}
+// Node *function()
+// {
+//     /**
+//      * function: ident "(" ")"
+//      */
+//     if (consume(TK_IDENT))
+//     {
+//         Node node = *new_node_call_function(((Token *)tokens->data[pos])->identifier);
+//         // この辺に引数リスト
 
-Node *assign()
-{
-    /**
-     * assign: equality
-     * assign: equality "=" assign
-     */
-    Node *node = equality();
-    while (consume('='))
-    {
-        node = new_node('=', node, assign());
-    }
-
-    return node;
-}
+//         if (!consume(')'))
+//         {
+//             error("関数定義が ) で閉じられていません: %s", input());
+//         }
+//     }
+// }
 
 Node *ret()
 {
@@ -505,9 +529,12 @@ ParseResult parse(TokenizeResult *tokenize_result)
 {
     tokens = tokenize_result->tokens;
     code = new_vector(5);
+    variables = new_map();
+    functions = new_map();
+
     program();
 
-    ParseResult result = {code, tokenize_result->identifiers};
+    ParseResult result = {code, variables, functions};
 
     return result;
 }

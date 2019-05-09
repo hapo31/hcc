@@ -12,7 +12,8 @@ void gen_lvalue(Node *node);
 void epilogue(FILE *fp);
 
 FILE *output_fp;
-Map *identifiers;
+Map *variables;
+Map *functions;
 Vector *code;
 int if_count = 0;
 int else_count = 0;
@@ -40,7 +41,7 @@ void prologue(FILE *fp)
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     emit("    push rbp");
     emit("    mov rbp, rsp");
-    emit("    sub rsp, %ld", identifiers->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("    sub rsp, %ld", variables->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -49,7 +50,7 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    int ident_index = (intptr_t)read_map(identifiers, node->name);
+    int ident_index = (intptr_t)read_map(variables, node->name);
     int offset = ident_index * VAR_SIZE;
     emit("    mov rax, rbp");
     emit("    sub rax, %d", offset);
@@ -239,7 +240,8 @@ void codegen(FILE *fp, ParseResult *parse_result)
 {
     output_fp = fp;
     code = parse_result->code;
-    identifiers = parse_result->identifiers;
+    variables = parse_result->variables;
+
     initial(fp);
 
     prologue(fp);

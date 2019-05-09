@@ -46,7 +46,8 @@ typedef struct tagNode
 typedef struct
 {
     Vector *code;
-    Map *identifiers;
+    Map *variables;
+    Map *functions;
 } ParseResult;
 
 ParseResult parse(TokenizeResult *tokenize_result);
