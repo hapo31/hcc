@@ -87,7 +87,10 @@ try -i 120 '(((((((((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 10) + 11)
 try -i 10 'super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww = 10; return super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww;'
 try -i 10 'x = 0; if(x == 0) { y = x + 10; return y; } else { return x; }'
 try -i 20 'x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y;'
-try -f 42 ./test/test_file.c
+try -i 10 'x = y = 5; return x + y;'
+try -i 50 'x = 0; y = 0; while(y < 5) { x = x + 10; y = y + 1; } return x;'
+try -f 25 ./test/test_file1.c
+try -f 42 ./test/test_file0.c
 
 echo ---------------------------------------------------------------------
 
