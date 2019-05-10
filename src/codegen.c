@@ -69,7 +69,8 @@ void gen(Node *node)
         // TODO: rsp を 16byte のアライメントに調整する必要があるらしい
         // ↓このコードはちゃんと動いてない
         // emit("    mov rax, rsp");
-        // emit("    div 16");
+        // emit("    mov rdx, 16");
+        // emit("    div rdx");
         // emit("    add rsp, rdx");
         emit("    call %s", node->name);
         return;
