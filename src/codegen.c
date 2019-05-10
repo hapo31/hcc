@@ -64,6 +64,17 @@ void gen(Node *node)
         error("internal error: node is null.\n");
     }
 
+    if (node->type == ND_CALL_FUCTION)
+    {
+        // TODO: rsp を 16byte のアライメントに調整する必要があるらしい
+        // ↓このコードはちゃんと動いてない
+        // emit("    mov rax, rsp");
+        // emit("    div 16");
+        // emit("    add rsp, rdx");
+        emit("    call %s", node->name);
+        return;
+    }
+
     if (node->type == ND_BLOCK)
     {
         for (int i = 0; i < node->block_items->len; ++i)

@@ -44,6 +44,32 @@ try() {
     fi
 }
 
+try_with_test_file()
+{
+    expected="$1"
+    input="$2"
+    test_func="$3"
+
+    ./hcc $input > tmp.s
+    gcc -o tmp tmp.s $test_func
+    ./tmp
+
+    actual="$?"
+
+    test_count=$((test_count + 1))
+
+    echo -n "[$test_count] "
+    if [ "$actual" = "$expected" ]; then
+        echo -e "$(green "[OK]") $input => $actual"
+
+    else
+        echo -e "$(red "[NG]") $input => $actual (expected $expected)"
+        mv ./tmp.s ./${test_count}_tmp.s
+        failed_count=$((failed_count + 1))
+        return 1
+    fi
+}
+
 try -i 0 '0;'
 try -i 42 '42;'
 try -i 24 '12+14-2;'
@@ -89,8 +115,10 @@ try -i 10 'x = 0; if(x == 0) { y = x + 10; return y; } else { return x; }'
 try -i 20 'x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y;'
 try -i 10 'x = y = 5; return x + y;'
 try -i 50 'x = 0; y = 0; while(y < 5) { x = x + 10; y = y + 1; } return x;'
-try -f 25 ./test/test_file1.c
 try -f 42 ./test/test_file0.c
+try -f 25 ./test/test_file1.c
+
+try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c
 
 echo ---------------------------------------------------------------------
 

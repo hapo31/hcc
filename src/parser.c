@@ -37,7 +37,7 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
-// Node *function();
+Node *function();
 Node *ret();
 
 void program();
@@ -467,11 +467,11 @@ Node *expression()
 
     Node *node;
 
-    // if (((Token *)tokens->data[pos + 1])->type == '(')
-    // {
-    //     node = function();
-    // }
-    // else
+    if (((Token *)tokens->data[pos])->type == TK_IDENT && ((Token *)tokens->data[pos + 1])->type == '(')
+    {
+        node = function();
+    }
+    else
     {
         node = equality();
     }
@@ -484,22 +484,30 @@ Node *expression()
     return node;
 }
 
-// Node *function()
-// {
-//     /**
-//      * function: ident "(" ")"
-//      */
-//     if (consume(TK_IDENT))
-//     {
-//         Node node = *new_node_call_function(((Token *)tokens->data[pos])->identifier);
-//         // この辺に引数リスト
+Node *function()
+{
+    /**
+     * function: ident "(" ")"
+     */
+    if (consume(TK_IDENT))
+    {
+        Node *node = new_node_call_function(((Token *)tokens->data[pos - 1])->identifier);
 
-//         if (!consume(')'))
-//         {
-//             error("関数定義が ) で閉じられていません: %s", input());
-//         }
-//     }
-// }
+        if (consume('('))
+        {
+            // この辺に引数リスト
+
+            if (!consume(')'))
+            {
+                error("関数呼び出しが ) で閉じられていません: %s", input());
+            }
+            return node;
+        }
+    }
+
+    error("関数定義が変です: %s", input());
+    return NULL;
+}
 
 Node *ret()
 {
