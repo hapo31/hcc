@@ -66,12 +66,13 @@ void gen(Node *node)
 
     if (node->type == ND_CALL_FUCTION)
     {
-        // TODO: rsp を 16byte のアライメントに調整する必要があるらしい
-        // ↓このコードはちゃんと動いてない
-        // emit("    mov rax, rsp");
-        // emit("    mov rdx, 16");
-        // emit("    div rdx");
-        // emit("    add rsp, rdx");
+        // rsp を 16byte のアライメントに調整する
+        // とりあえずrspを16で割った余りをrspに足すという処理をしてみる(合ってるかは不明)
+        emit("    mov rax, rsp");
+        emit("    mov rdx, 0");
+        emit("    mov rdi, 16");
+        emit("    div rdi");
+        emit("    add rsp, rdx");
         emit("    call %s", node->name);
         return;
     }
