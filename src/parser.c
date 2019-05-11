@@ -37,7 +37,7 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
-Node *function();
+Node *function_call();
 Node *ret();
 
 void program();
@@ -461,7 +461,7 @@ Node *expression()
 {
     /**
      * expression: equality
-     * expression: function
+     * expression: function_call
      * expression: equality "=" expression
      */
 
@@ -469,7 +469,7 @@ Node *expression()
 
     if (((Token *)tokens->data[pos])->type == TK_IDENT && ((Token *)tokens->data[pos + 1])->type == '(')
     {
-        node = function();
+        node = function_call();
     }
     else
     {
@@ -484,10 +484,11 @@ Node *expression()
     return node;
 }
 
-Node *function()
+Node *function_call()
 {
     /**
-     * function: ident "(" ")"
+     * function: ident "(" args_list ")"
+     *
      */
     if (consume(TK_IDENT))
     {
