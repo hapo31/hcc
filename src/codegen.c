@@ -15,6 +15,18 @@ FILE *output_fp;
 Map *variables;
 Map *functions;
 Vector *code;
+
+const char *x86_64_args_registers[] = {
+    "rdi",
+    "rsi",
+    "rdx",
+    "rcx",
+    "r8",
+    "r9",
+};
+
+#define ARGS_REGISTER_SIZE (sizeof(x86_64_args_registers) / sizeof(char *))
+
 int if_count = 0;
 int else_count = 0;
 int while_count = 0;
@@ -59,15 +71,29 @@ void gen_lvalue(Node *node)
 
 void gen(Node *node)
 {
-    if (node == NULL)
+    if (node == NULL || node->type == ND_EMPTY)
     {
-        error("internal error: node is null.\n");
+        return;
     }
 
     if (node->type == ND_CALL_FUCTION)
     {
+        int stacked_count = 0;
+        if (node->lhs->type == ND_SEMI_EXPR_LIST)
+        {
+            Vector *args = node->lhs->block_items;
+            for (int i = 0; i < args->len; ++i)
+            {
+                gen((Node *)args->data[i]);
+                if (i < ARGS_REGISTER_SIZE)
+                {
+                    emit("    pop %s", x86_64_args_registers[i]);
+                }
+            }
+        }
         // rsp を 16byte のアライメントに調整する
         // とりあえずrspを16で割った余りをrspに足すという処理をしてみる(合ってるかは不明)
+        // TODO: test49 が変な値を返している
         emit("    mov rax, rsp");
         emit("    mov rdx, 0");
         emit("    mov rdi, 16");

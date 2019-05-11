@@ -143,7 +143,7 @@ TokenizeResult tokenize(char *p)
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%' ||
             *p == '(' || *p == ')' || *p == ';' || *p == '=' ||
             *p == '{' || *p == '}' ||
-            *p == ':')
+            *p == ':' || *p == ',')
         {
             token->type = *p;
             token->input = p;

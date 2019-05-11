@@ -25,6 +25,11 @@ Node *new_while_node();
 Node *new_block_node();
 
 bool consume(int type);
+
+bool current(int type);
+bool next(int type);
+bool prev(int type);
+
 Node *add();
 Node *mul();
 Node *unary();
@@ -37,7 +42,9 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
+Node *arg_list();
 Node *function_call();
+Node *semicoron_list();
 Node *ret();
 
 void program();
@@ -129,6 +136,21 @@ bool consume(int type)
     }
     ++pos;
     return true;
+}
+
+bool current(int type)
+{
+    return ((Token *)tokens->data[pos])->type == type;
+}
+
+bool next(int type)
+{
+    return pos + 1 < tokens->len && ((Token *)tokens->data[pos + 1])->type == type;
+}
+
+bool prev(int type)
+{
+    return pos - 1 >= 0 && ((Token *)tokens->data[pos - 1])->type == type;
 }
 
 Node *add()
@@ -484,6 +506,35 @@ Node *expression()
     return node;
 }
 
+Node *semicoron_list()
+{
+    /**
+     * semicoron_list: expression
+     * semicoron_list: expression "," semicoron_list
+     * semicoron_list: ε
+     */
+
+    Node *node = new_node(ND_SEMI_EXPR_LIST, NULL, NULL);
+    node->block_items = new_vector(1);
+
+    do
+    {
+        push_vector(node->block_items, expression());
+    } while (consume(','));
+
+    return node;
+}
+
+Node *arg_list()
+{
+    if (current(')'))
+    {
+        return new_node(ND_EMPTY, NULL, NULL);
+    }
+
+    return semicoron_list();
+}
+
 Node *function_call()
 {
     /**
@@ -496,8 +547,7 @@ Node *function_call()
 
         if (consume('('))
         {
-            // この辺に引数リスト
-
+            node->lhs = arg_list();
             if (!consume(')'))
             {
                 error("関数呼び出しが ) で閉じられていません: %s", input());
@@ -529,8 +579,7 @@ void program()
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
-        Node *node = statement();
-        push_vector(code, node);
+        push_vector(code, statement());
     }
 }
 
