@@ -118,7 +118,7 @@ try -i 50 'x = 0; y = 0; while(y < 5) { x = x + 10; y = y + 1; } return x;'
 try -f 42 ./test/test_file0.c
 try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c
-try_with_test_file 0 ./test/test_file3.c ./test/test_funcs.c
+try_with_test_file 6 ./test/test_file3.c ./test/test_funcs.c
 
 echo ---------------------------------------------------------------------
 
