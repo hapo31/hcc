@@ -94,15 +94,11 @@ void gen(Node *node)
             args_len = args->len;
             // 引数が7個以上かつ奇数のとき、 rsp が 16byte アライメントになっていないので
             // 16byte のアライメントに調整する
-            // TODO: 動いてない
-            // if (args_len >= 7 && args_len % 2 == 1)
-            // {
-            //     emit("mov rax, rsp");
-            //     emit("mov rdx, 0");
-            //     emit("mov rdi, 16");
-            //     emit("div rdi");
-            //     emit("add rsp, rdx");
-            // }
+            // TODO: 既に色んな所でスタックを使ってしまってるのでこの方法だと動かない…
+            if (args_len >= 7 && args_len % 2 == 1)
+            {
+                emit("sub rsp, 8");
+            }
             for (int i = args_len; i >= 0; --i)
             {
                 gen((Node *)args->data[i]);
@@ -110,23 +106,16 @@ void gen(Node *node)
                 {
                     emit("pop %s", x86_64_args_registers[i]);
                 }
-                // else
-                // {
-                //     emit("push rax ");
-                // }
             }
         }
 
-        // rsp を 16byte のアライメントに調整する
-        // とりあえずrspを16で割った余りをrspに足すという処理をしてみる(合ってるかは不明)
-        // TODO: test49 が変な値を返している
-        // emit("mov rax, rsp");
-        // emit("mov rdx, 0");
-        // emit("mov rdi, 16");
-        // emit("div rdi");
-        // emit("add rsp, rdx");
         emit("call %s", node->name);
+        if (args_len >= 7 && args_len % 2 == 1)
+        {
+            emit("add rsp, 16");
+        }
         emit("push rax");
+
         return;
     }
 
