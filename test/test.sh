@@ -70,6 +70,8 @@ try_with_test_file()
     fi
 }
 
+rm *_tmp.s
+
 try -i 0 '0;'
 try -i 42 '42;'
 try -i 24 '12+14-2;'
