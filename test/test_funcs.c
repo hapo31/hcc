@@ -19,6 +19,11 @@ int g2(int i, int j, int k, int l, int m, int n, int o)
   return i + j + k + l + m + n + o;
 }
 
+int f1(int i, int j, int k, int l, int m, int n, int o)
+{
+  return i + j + k + l + m + n + o;
+}
+
 int h()
 {
   return g2(1, 2, 3, 4, 5, 6, 7);

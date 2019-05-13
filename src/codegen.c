@@ -92,13 +92,20 @@ void gen(Node *node)
         {
             Vector *args = node->lhs->block_items;
             args_len = args->len;
-            // 引数が7個以上かつ奇数のとき、 rsp が 16byte アライメントになっていないので
-            // 16byte のアライメントに調整する
-            // TODO: 既に色んな所でスタックを使ってしまってるのでこの方法だと動かない…
-            if (args_len >= 7 && args_len % 2 == 1)
-            {
-                emit("sub rsp, 8");
-            }
+
+            // スタックポインタを 16byte 境界にアライメント
+            // emit("mov rax, rsp");
+            // emit("mov rdx, 0");
+            // emit("mov rdi, 16");
+            // emit("div rdi");
+            // emit("sub rsp, rdx");
+
+            // 引数が7個以上かつ奇数のとき、 rsp が 16byte アライメントにならないので
+            // 追加でスタックポインタをさらに押し下げる
+            // if (args_len >= 7 && args_len % 2 == 1)
+            // {
+            //     emit("sub rsp, 8");
+            // }
             for (int i = args_len; i >= 0; --i)
             {
                 gen((Node *)args->data[i]);
@@ -106,13 +113,16 @@ void gen(Node *node)
                 {
                     emit("pop %s", x86_64_args_registers[i]);
                 }
+                // 引数をスタックに乗せる操作をするはずだけど、
+                // 今のコードだともうすでにスタックに計算結果が乗っている
             }
         }
 
         emit("call %s", node->name);
-        if (args_len >= 7 && args_len % 2 == 1)
+        // 引数のために積んだスタックの後始末
+        if (args_len >= 7)
         {
-            emit("add rsp, 16");
+            emit("add rsp, %d", (args_len - 6) * VAR_SIZE);
         }
         emit("push rax");
 
