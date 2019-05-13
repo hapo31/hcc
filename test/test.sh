@@ -119,6 +119,7 @@ try -f 42 ./test/test_file0.c
 try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c
 try_with_test_file 6 ./test/test_file3.c ./test/test_funcs.c
+try_with_test_file 13 ./test/test_file4.c ./test/test_funcs.c
 
 echo ---------------------------------------------------------------------
 
