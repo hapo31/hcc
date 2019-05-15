@@ -11,10 +11,10 @@ void gen(Node *node);
 void gen_lvalue(Node *node);
 void epilogue(FILE *fp);
 
-FILE *output_fp;
-Map *variables;
-Map *functions;
-Vector *code;
+static FILE *output_fp;
+static Map *variables;
+static Map *functions;
+static Vector *code;
 
 const char *x86_64_args_registers[] = {
     "rdi",

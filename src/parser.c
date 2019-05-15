@@ -5,13 +5,13 @@
 
 #include "parser.h"
 
-Vector *tokens;
-Vector *code;
+static Vector *tokens;
+static Vector *code;
 
-Map *variables;
-Map *functions;
+static Map *variables;
+static Map *functions;
 
-int pos = 0;
+static int pos = 0;
 
 char *input();
 
