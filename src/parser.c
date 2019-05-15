@@ -243,6 +243,7 @@ Node *term()
     /**
      * term: num
      * term: ident
+     * term: function_call
      * term: "(" expression ")"
      */
     if (consume('('))
@@ -255,15 +256,19 @@ Node *term()
         }
         return node;
     }
-
-    if (consume(TK_NUM))
+    else if (consume(TK_NUM))
     {
         return new_node_num(((Token *)tokens->data[pos - 1])->value);
     }
-
-    if (consume(TK_IDENT))
+    else if (consume(TK_IDENT))
     {
+        if (current('('))
+        {
+            return function_call();
+        }
+
         char *identifier = ((Token *)tokens->data[pos - 1])->identifier;
+
         // 今見ている関数の変数一覧を取得する
         Function *function = (Function *)functions->data->data[functions->len - 1];
         Map *variable_list = function->variable_list;
@@ -494,20 +499,10 @@ Node *expression()
 {
     /**
      * expression: equality
-     * expression: function_call
      * expression: equality "=" expression
      */
 
-    Node *node;
-
-    if (((Token *)tokens->data[pos])->type == TK_IDENT && ((Token *)tokens->data[pos + 1])->type == '(')
-    {
-        node = function_call();
-    }
-    else
-    {
-        node = equality();
-    }
+    Node *node = equality();
 
     while (consume('='))
     {
@@ -627,19 +622,17 @@ Node *function_call()
      * function: ident "(" arg_list ")"
      *
      */
-    if (consume(TK_IDENT))
-    {
-        Node *node = new_node_call_function(((Token *)tokens->data[pos - 1])->identifier);
 
-        if (consume('('))
+    Node *node = new_node_call_function(((Token *)tokens->data[pos - 1])->identifier);
+
+    if (consume('('))
+    {
+        node->lhs = arg_list();
+        if (!consume(')'))
         {
-            node->lhs = arg_list();
-            if (!consume(')'))
-            {
-                error("関数呼び出しが ) で閉じられていません: %s", input());
-            }
-            return node;
+            error("関数呼び出しが ) で閉じられていません: %s", input());
         }
+        return node;
     }
 
     error("関数呼び出しが変です: %s", input());
