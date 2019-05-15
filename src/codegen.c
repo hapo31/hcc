@@ -54,18 +54,7 @@ void emit(const char *fmt, ...)
 void initial()
 {
     label(".intel_syntax noprefix");
-    emit_global_functions();
-}
-
-void emit_global_functions()
-{
-    fprintf(output_fp, ".global ");
-    for (int i = 0; i < context_function_list->len; ++i)
-    {
-        fprintf(output_fp, "%s ", (char *)context_function_list->keys->data[i]);
-    }
-
-    fprintf(output_fp, "\n");
+    label(".global main");
 }
 
 void gen_function(Function *function)
