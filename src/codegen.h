@@ -7,4 +7,4 @@
 #include "map.h"
 #include "vector.h"
 
-void codegen(FILE *target, ParseResult *parse_result);
+void codegen(FILE *target, Map *parse_result);

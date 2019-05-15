@@ -35,6 +35,7 @@ void put_map(Map *map, const char *key, void *value)
   {
     char *key_buf = (char *)malloc(sizeof(char) * key_len + 1);
     strncpy(key_buf, key, key_len);
+    key_buf[key_len] = '\0';
     push_vector(map->keys, key_buf);
     push_vector(map->data, value);
     ++map->len;

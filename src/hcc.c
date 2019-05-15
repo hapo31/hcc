@@ -69,13 +69,13 @@ int main(int argc, char **argv)
     }
 
     // トークン列に分解
-    TokenizeResult tokenize_result = tokenize(src);
+    Vector *tokenize_result = tokenize(src);
 
     // 抽象構文木を作成
-    ParseResult parse_result = parse(&tokenize_result);
+    Map *parse_result = parse(tokenize_result);
 
     // コード出力
-    codegen(stdout, &parse_result);
+    codegen(stdout, parse_result);
 
     return 0;
 }

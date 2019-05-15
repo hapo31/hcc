@@ -6,14 +6,13 @@
 #include "parser.h"
 
 static Vector *tokens;
-static Vector *code;
 
-static Map *variables;
 static Map *functions;
 
 static int pos = 0;
 
 char *input();
+Token *token(Vector *token, int i);
 
 Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
@@ -42,7 +41,9 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
+Vector *parameters();
 Node *arg_list();
+Function *function_def();
 Node *function_call();
 Node *semicoron_list();
 Node *ret();
@@ -52,6 +53,11 @@ void program();
 char *input()
 {
     return ((Token *)tokens->data[pos])->input;
+}
+
+Token *token(Vector *token, int i)
+{
+    return (Token *)tokens->data[i];
 }
 
 Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs)
@@ -258,10 +264,14 @@ Node *term()
     if (consume(TK_IDENT))
     {
         char *identifier = ((Token *)tokens->data[pos - 1])->identifier;
-        if (!contains_map(variables, identifier))
+        // 今見ている関数の変数一覧を取得する
+        Function *function = (Function *)functions->data->data[functions->len - 1];
+        Map *variable_list = function->variable_list;
+
+        if (!contains_map(variable_list, identifier))
         {
-            int len = variables->len;
-            put_map(variables, identifier, (void *)(intptr_t)len);
+            int len = variable_list->len;
+            put_map(variable_list, identifier, (void *)(intptr_t)len);
         }
         return new_node_identifier(identifier);
     }
@@ -440,6 +450,7 @@ Node *statement()
      * statement: if_statement
      * statement: while_statement
      * statement: for_statement
+     * statement: function_call
      * statement: "return" expression ";"
      * statement: expression ";"
      */
@@ -453,13 +464,13 @@ Node *statement()
     {
         return if_statement();
     }
-    else if (consume(TK_FOR))
-    {
-        return for_statement();
-    }
     else if (consume(TK_WHILE))
     {
         return while_statement();
+    }
+    else if (consume(TK_FOR))
+    {
+        return for_statement();
     }
     else if (consume(TK_RETURN))
     {
@@ -535,10 +546,85 @@ Node *arg_list()
     return semicoron_list();
 }
 
+Vector *parameters()
+{
+    /**
+     * parameter_list: ε
+     * parameter_list: parameter
+     * parameter_list: parameter "," parameter_list
+     */
+    Vector *vec = new_vector(1);
+
+    if (consume(')'))
+    {
+        return vec;
+    }
+
+    do
+    {
+        // この辺に引数の型の構文
+
+        // 引数名
+        push_vector(vec, new_node_identifier(token(tokens, pos)->identifier));
+        ++pos;
+    } while (consume(','));
+    if (consume(')'))
+    {
+        return vec;
+    }
+    else
+    {
+        error("仮引数リストが)で閉じられていません: %s", input());
+    }
+}
+
+Function *function_def()
+{
+    /**
+     * function_def: function_name "(" parameters ")"
+     */
+    Function *function = (Function *)malloc(sizeof(Function));
+    function->variable_list = new_map();
+
+    char *name = token(tokens, pos - 2)->identifier;
+
+    if (!contains_map(functions, name))
+    {
+        function->name = name;
+        put_map(functions, name, function);
+    }
+    else
+    {
+        error("関数定義が重複しています。: %s", input());
+    }
+
+    // 仮引数リストをパース
+    Vector *parameters_ = parameters();
+
+    // 引数定義を変数定義に変換する
+    Map *variable_list = function->variable_list;
+    for (int i = 0; i < parameters_->len; ++i)
+    {
+        Node *param = parameters_->data[i];
+        put_map(variable_list, param->name, (void *)(intptr_t)i);
+    }
+
+    if (consume('{'))
+    {
+        function->top_level_code = block_items();
+    }
+    else
+    {
+        error("関数定義が変です: %s", input());
+    }
+
+    return function;
+}
+
 Node *function_call()
 {
     /**
-     * function: ident "(" args_list ")"
+     * function: ident "(" arg_list ")"
      *
      */
     if (consume(TK_IDENT))
@@ -556,7 +642,7 @@ Node *function_call()
         }
     }
 
-    error("関数定義が変です: %s", input());
+    error("関数呼び出しが変です: %s", input());
     return NULL;
 }
 
@@ -573,26 +659,35 @@ Node *ret()
 void program()
 {
     /**
-     * program: statement program
+     * program: function_definition program
      * program: ε
+     *
+     * function_definition: identifier "(" parameter_list ")" "{" statement "}" program
      */
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
-        push_vector(code, statement());
+        if (consume(TK_IDENT))
+        {
+            if (consume('('))
+            {
+                Function *function = function_def();
+                put_map(functions, function->name, function);
+            }
+        }
+        else
+        {
+            error("トップレベルの関数定義が変です: %s", input());
+        }
     }
 }
 
-ParseResult parse(TokenizeResult *tokenize_result)
+Map *parse(Vector *tokenize_result)
 {
-    tokens = tokenize_result->tokens;
-    code = new_vector(5);
-    variables = new_map();
+    tokens = tokenize_result;
     functions = new_map();
 
     program();
 
-    ParseResult result = {code, variables, functions};
-
-    return result;
+    return functions;
 }

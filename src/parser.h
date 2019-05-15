@@ -11,6 +11,8 @@ typedef enum
     ND_EMPTY,          // 空
     ND_IDENT,          // 識別子
     ND_CALL_FUCTION,   // 関数呼び出し
+    ND_DEF_FUNCTION,   // 関数定義
+    ND_PARAMETERS,     // 仮引数リスト
     ND_SEMI_EXPR_LIST, // ,区切りの式リスト
     ND_IF,             // if
     ND_ELSE,           // else
@@ -31,9 +33,10 @@ typedef struct tagNode
     NODE_TYPE type;
     struct tagNode *lhs;
     struct tagNode *rhs;
-    int value;
-    char *name;
+    int value;  // type == NUM のとき、その数値
+    char *name; // type == TK_IDENT のとき、その識別子の名前
     Vector *block_items;
+    Vector *parameters;
 
     struct tagNode *then;
 
@@ -48,9 +51,9 @@ typedef struct tagNode
 
 typedef struct
 {
-    Vector *code;
-    Map *variables;
-    Map *functions;
-} ParseResult;
+    char *name;
+    Map *variable_list;
+    Node *top_level_code;
+} Function;
 
-ParseResult parse(TokenizeResult *tokenize_result);
+Map *parse(Vector *tokenize_result);

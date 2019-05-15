@@ -5,16 +5,18 @@
 #include "codegen.h"
 
 void emit(const char *fmt, ...);
-void initial(FILE *fp);
-void prologue(FILE *fp);
+void initial();
+void emit_global_functions();
+void prologue();
+void gen_function(Function *function);
 void gen(Node *node);
 void gen_lvalue(Node *node);
-void epilogue(FILE *fp);
+void epilogue();
 
 static FILE *output_fp;
-static Map *variables;
-static Map *functions;
-static Vector *code;
+static Map *context_function_list;
+static Map *context_variable_list;
+static Function *function;
 
 const char *x86_64_args_registers[] = {
     "rdi",
@@ -49,20 +51,41 @@ void emit(const char *fmt, ...)
     fprintf(output_fp, "\n");
 }
 
-void initial(FILE *fp)
+void initial()
 {
     label(".intel_syntax noprefix");
-    label(".global main");
-    label("main: ");
+    emit_global_functions();
 }
 
-void prologue(FILE *fp)
+void emit_global_functions()
+{
+    fprintf(output_fp, ".global ");
+    for (int i = 0; i < context_function_list->len; ++i)
+    {
+        fprintf(output_fp, "%s ", (char *)context_function_list->keys->data[i]);
+    }
+
+    fprintf(output_fp, "\n");
+}
+
+void gen_function(Function *function)
+{
+    label("%s:", function->name);
+
+    context_variable_list = function->variable_list;
+
+    prologue();
+    gen(function->top_level_code);
+    epilogue();
+}
+
+void prologue()
 {
     // プロローグ
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     emit("push rbp");
     emit("mov rbp, rsp");
-    emit("sub rsp, %ld", variables->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("sub rsp, %ld", context_variable_list->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -71,7 +94,7 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    int ident_index = (intptr_t)read_map(variables, node->name);
+    int ident_index = (intptr_t)read_map(context_variable_list, node->name);
     int offset = ident_index * VAR_SIZE;
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
@@ -291,7 +314,7 @@ void gen(Node *node)
     emit("push rax");
 }
 
-void epilogue(FILE *fp)
+void epilogue()
 {
     // エピローグ
 
@@ -301,24 +324,17 @@ void epilogue(FILE *fp)
     emit("ret");
 }
 
-void codegen(FILE *fp, ParseResult *parse_result)
+void codegen(FILE *fp, Map *parse_result)
 {
     output_fp = fp;
-    code = parse_result->code;
-    variables = parse_result->variables;
+    context_function_list = parse_result;
 
-    initial(fp);
+    initial();
 
-    prologue(fp);
-
-    for (int i = 0; i < code->len; ++i)
+    for (int i = 0; i < context_function_list->len; ++i)
     {
-        // 抽象構文木からアセンブラを生成
-        gen(code->data[i]);
-
-        // スタックに式の評価結果が乗っているので pop しておく
-        emit("pop rax");
+        function = (Function *)context_function_list->data->data[i];
+        // 関数を出力
+        gen_function(function);
     }
-
-    epilogue(fp);
 }

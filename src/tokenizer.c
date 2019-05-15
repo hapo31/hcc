@@ -13,7 +13,7 @@ bool keyword(const char *src, const char *keyword)
     return strncmp(src, keyword, len) == 0 && !is_alpha_or_num(*(src + len));
 }
 
-TokenizeResult tokenize(char *p)
+Vector *tokenize(char *p)
 {
     Vector *tokens = new_vector(100);
     Map *identifiers = new_map();
@@ -197,7 +197,5 @@ TokenizeResult tokenize(char *p)
     token->input = p;
     push_vector(tokens, token);
 
-    TokenizeResult result = {tokens, identifiers};
-
-    return result;
+    return tokens;
 }

@@ -33,10 +33,4 @@ typedef struct
     char *input;
 } Token;
 
-typedef struct
-{
-    Vector *tokens;
-    Map *identifiers;
-} TokenizeResult;
-
-TokenizeResult tokenize(char *p);
+Vector *tokenize(char *p);
