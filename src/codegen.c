@@ -8,6 +8,7 @@ void emit(const char *fmt, ...);
 void initial();
 void emit_global_functions();
 void prologue();
+void gen_parameter();
 void gen_function(Function *function);
 void gen(Node *node);
 void gen_lvalue(Node *node);
@@ -64,6 +65,7 @@ void gen_function(Function *function)
     context_variable_list = function->variable_list;
 
     prologue();
+    gen_parameter();
     gen(function->top_level_code);
     epilogue();
 }
@@ -88,6 +90,22 @@ void gen_lvalue(Node *node)
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
     emit("push rax");
+}
+
+void gen_parameter()
+{
+    for (int i = 0; i < context_variable_list->len; ++i)
+    {
+        if (i < ARGS_REGISTER_SIZE)
+        {
+            int offset = (intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]);
+            emit("mov [rbp-%ld], %s", offset * VAR_SIZE, x86_64_args_registers[i]);
+        }
+        else
+        {
+            emit("mov [rbp+%ld], [rbp-%ld]", (i - ARGS_REGISTER_SIZE + 2) * VAR_SIZE, (i + 1) * VAR_SIZE);
+        }
+    }
 }
 
 void gen(Node *node)
@@ -165,18 +183,18 @@ void gen(Node *node)
         {
             int else_count_local = else_count;
             ++else_count;
-            emit("je .Lelse%d", else_count_local);
+            label("je .Lelse%d", else_count_local);
             gen(node->then);
             emit("jmp .Lendif%d", local_if_count);
-            emit(".Lelse%d:", else_count_local);
+            label(".Lelse%d:", else_count_local);
             gen(node->else_);
-            emit(".Lendif%d:", local_if_count);
+            label(".Lendif%d:", local_if_count);
         }
         else
         {
             emit("je .Lendif%d", local_if_count);
             gen(node->then);
-            emit(".Lendif%d:", local_if_count);
+            label(".Lendif%d:", local_if_count);
         }
         return;
     }
@@ -185,14 +203,14 @@ void gen(Node *node)
     {
         int while_count_local = while_count;
         ++while_count;
-        emit(".Lwhile%d:", while_count_local);
+        label(".Lwhile%d:", while_count_local);
         gen(node->condition);
         emit("pop rax");
         emit("cmp rax, 0");
         emit("je .Lendwhile%d", while_count_local);
         gen(node->then);
         emit("jmp .Lwhile%d", while_count_local);
-        emit(".Lendwhile%d:", while_count_local);
+        label(".Lendwhile%d:", while_count_local);
         return;
     }
 
@@ -201,7 +219,7 @@ void gen(Node *node)
         int for_count_local = for_count;
         ++for_count;
         gen(node->init_expression);
-        emit(".Lfor%d:", for_count_local);
+        label(".Lfor%d:", for_count_local);
         gen(node->condition);
         emit("pop rax");
         emit("cmp rax, 0");
@@ -209,7 +227,7 @@ void gen(Node *node)
         gen(node->then);
         gen(node->loop_expression);
         emit("jmp .Lfor%d", for_count_local);
-        emit(".Lforend%d:", for_count_local);
+        label(".Lforend%d:", for_count_local);
         return;
     }
 

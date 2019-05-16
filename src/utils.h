@@ -1,6 +1,6 @@
 #pragma once
 
-#define VAR_SIZE 8
+#define VAR_SIZE (sizeof(int))
 
 void error(char *fmt, ...);
 
