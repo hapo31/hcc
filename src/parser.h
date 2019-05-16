@@ -52,6 +52,7 @@ typedef struct tagNode
 typedef struct
 {
     char *name;
+    int parameter_count;
     Map *variable_list;
     Node *top_level_code;
 } Function;

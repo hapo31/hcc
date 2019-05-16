@@ -85,6 +85,10 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
+    if (!contains_map(context_variable_list, node->name))
+    {
+        error("変数が定義されていません: %s", node->name);
+    }
     int ident_index = (intptr_t)read_map(context_variable_list, node->name);
     int offset = ident_index * VAR_SIZE;
     emit("mov rax, rbp");
@@ -94,12 +98,12 @@ void gen_lvalue(Node *node)
 
 void gen_parameter()
 {
-    for (int i = 0; i < context_variable_list->len; ++i)
+    for (int i = 0; i < function->parameter_count; ++i)
     {
         if (i < ARGS_REGISTER_SIZE)
         {
-            int offset = (intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]);
-            emit("mov [rbp-%ld], %s", offset * VAR_SIZE, x86_64_args_registers[i]);
+            int offset = (intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]) * VAR_SIZE;
+            emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
         }
         else
         {

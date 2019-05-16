@@ -8,6 +8,7 @@
 static Vector *tokens;
 
 static Map *functions;
+static Function *context_function;
 
 static int pos = 0;
 
@@ -270,13 +271,13 @@ Node *term()
         char *identifier = ((Token *)tokens->data[pos - 1])->identifier;
 
         // 今見ている関数の変数一覧を取得する
-        Function *function = (Function *)functions->data->data[functions->len - 1];
+        Function *function = context_function;
         Map *variable_list = function->variable_list;
 
         if (!contains_map(variable_list, identifier))
         {
             int len = variable_list->len;
-            put_map(variable_list, identifier, (void *)(intptr_t)len);
+            put_map(variable_list, identifier, (void *)(intptr_t)len + 1);
         }
         return new_node_identifier(identifier);
     }
@@ -579,6 +580,9 @@ Function *function_def()
      * function_def: function_name "(" parameters ")"
      */
     Function *function = (Function *)malloc(sizeof(Function));
+    // コンテキストを保存
+    context_function = function;
+
     function->variable_list = new_map();
 
     char *name = token(tokens, pos - 2)->identifier;
@@ -595,13 +599,15 @@ Function *function_def()
 
     // 仮引数リストをパース
     Vector *parameters_ = parameters();
+    // 仮引数の数を保存
+    function->parameter_count = parameters_->len;
 
-    // 引数定義を変数定義に変換する
     Map *variable_list = function->variable_list;
+    // 引数定義を変数定義に変換する
     for (int i = 0; i < parameters_->len; ++i)
     {
         Node *param = parameters_->data[i];
-        put_map(variable_list, param->name, (void *)(intptr_t)i);
+        put_map(variable_list, param->name, (void *)(intptr_t)i + 1);
     }
 
     if (consume('{'))
