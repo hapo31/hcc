@@ -76,7 +76,7 @@ void prologue()
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     emit("push rbp");
     emit("mov rbp, rsp");
-    emit("sub rsp, %ld", context_variable_list->len * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("sub rsp, %ld", (context_variable_list->len) * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -90,7 +90,7 @@ void gen_lvalue(Node *node)
         error("変数が定義されていません: %s", node->name);
     }
     int ident_index = (intptr_t)read_map(context_variable_list, node->name);
-    int offset = ident_index * VAR_SIZE;
+    int offset = (ident_index + 1) * VAR_SIZE;
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
     emit("push rax");
@@ -102,11 +102,12 @@ void gen_parameter()
     {
         if (i < ARGS_REGISTER_SIZE)
         {
-            int offset = (intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]) * VAR_SIZE;
+            int offset = ((intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]) + 1) * VAR_SIZE;
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
         }
         else
         {
+            // FIXME:
             emit("mov [rbp+%ld], [rbp-%ld]", (i - ARGS_REGISTER_SIZE + 2) * VAR_SIZE, (i + 1) * VAR_SIZE);
         }
     }
@@ -171,7 +172,7 @@ void gen(Node *node)
             gen(block_node);
             emit("pop rax");
         }
-
+        emit("push rax");
         return;
     }
 
@@ -187,7 +188,7 @@ void gen(Node *node)
         {
             int else_count_local = else_count;
             ++else_count;
-            label("je .Lelse%d", else_count_local);
+            emit("je .Lelse%d", else_count_local);
             gen(node->then);
             emit("jmp .Lendif%d", local_if_count);
             label(".Lelse%d:", else_count_local);

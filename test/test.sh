@@ -115,12 +115,14 @@ try -i 120 'main() { (((((((((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 
 try -i 10 'main() { super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww = 10; return super_long_var_name_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww; }'
 try -i 10 'main() { x = 0; if(x == 0) { y = x + 10; return y; } else { return x; } }'
 try -i 20 'main() { x = 1; y = 0; if (x == 0) { y = 10; } else { y = 20; } return y; }'
+try -i 10 'main() { x = 0; y = 1; if (x == 0) { y = 10; } else { y = 20; } return y; }'
 try -i 6 'main() { x = 1; y = 2; z = 3; a = x + y + z; return a; }'
 try -i 1 'main() { x = 1; if (x == 1) { return 1; } return 0; }'
 try -i 10 'main() { x = y = 5; return x + y; }'
 try -i 50 'main() { x = 0; y = 0; while(y < 5) { x = x + 10; y = y + 1; } return x; }'
-try -i 200 'f(x) { return x; } main(){ n = f(5); return n; }'
+try -i 5 'f(x) { return x; } main(){ n = f(5); return n; }'
 try -i 60 'f(x) { if(x == 0) return 1; return x * f(x-1); } main(){ return f(5); }'
+try -i 60 'f(x) { if(x == 0) return 1; return x * f(x-1); } main(){ return f(1); }'
 try -f 42 ./test/test_file0.c
 try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c

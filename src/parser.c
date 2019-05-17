@@ -277,7 +277,7 @@ Node *term()
         if (!contains_map(variable_list, identifier))
         {
             int len = variable_list->len;
-            put_map(variable_list, identifier, (void *)(intptr_t)len + 1);
+            put_map(variable_list, identifier, (void *)(intptr_t)len);
         }
         return new_node_identifier(identifier);
     }
@@ -607,7 +607,7 @@ Function *function_def()
     for (int i = 0; i < parameters_->len; ++i)
     {
         Node *param = parameters_->data[i];
-        put_map(variable_list, param->name, (void *)(intptr_t)i + 1);
+        put_map(variable_list, param->name, (void *)(intptr_t)i);
     }
 
     if (consume('{'))
