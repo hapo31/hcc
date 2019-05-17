@@ -15,8 +15,7 @@ void gen_lvalue(Node *node);
 void epilogue();
 
 static FILE *output_fp;
-static Map *context_function_list;
-static Function *function;
+static Function *context_function;
 
 const char *x86_64_args_registers[] = {
     "rdi",
@@ -73,7 +72,7 @@ void prologue()
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     emit("push rbp");
     emit("mov rbp, rsp");
-    emit("sub rsp, %ld", (function->variable_list->len) * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("sub rsp, %ld", (context_function->variable_list->len) * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -82,11 +81,11 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    if (!contains_map(function->variable_list, node->name))
+    if (!contains_map(context_function->variable_list, node->name))
     {
         error("変数が定義されていません: %s", node->name);
     }
-    int ident_index = (intptr_t)read_map(function->variable_list, node->name);
+    int ident_index = (intptr_t)read_map(context_function->variable_list, node->name);
     int offset = (ident_index + 1) * VAR_SIZE;
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
@@ -95,9 +94,9 @@ void gen_lvalue(Node *node)
 
 void gen_parameter()
 {
-    for (int i = 0; i < function->parameter_count; ++i)
+    for (int i = 0; i < context_function->parameter_count; ++i)
     {
-        int offset = ((intptr_t)read_map(function->variable_list, (char *)function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
+        int offset = ((intptr_t)read_map(context_function->variable_list, (char *)context_function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
         if (i < ARGS_REGISTER_SIZE)
         {
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
@@ -336,14 +335,13 @@ void epilogue()
 void codegen(FILE *fp, Map *parse_result)
 {
     output_fp = fp;
-    context_function_list = parse_result;
 
     initial();
 
-    for (int i = 0; i < context_function_list->len; ++i)
+    for (int i = 0; i < parse_result->len; ++i)
     {
-        function = (Function *)context_function_list->data->data[i];
+        context_function = (Function *)parse_result->data->data[i];
         // 関数を出力
-        gen_function(function);
+        gen_function(context_function);
     }
 }
