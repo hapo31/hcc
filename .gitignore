@@ -2,7 +2,9 @@
 *.o
 tmp*
 *_tmp*
+*.s
 hcc
 ipch/
 test.a
 .vscode/c_cpp_properties.json
+a.out
