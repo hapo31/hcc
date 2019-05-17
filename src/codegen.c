@@ -197,6 +197,7 @@ void gen(Node *node)
             gen(node->then);
             label(".Lendif%d:", local_if_count);
         }
+        emit("push rax");
         return;
     }
 
