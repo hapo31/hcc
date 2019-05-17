@@ -97,15 +97,15 @@ void gen_parameter()
 {
     for (int i = 0; i < function->parameter_count; ++i)
     {
+        int offset = ((intptr_t)read_map(function->variable_list, (char *)function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
         if (i < ARGS_REGISTER_SIZE)
         {
-            int offset = ((intptr_t)read_map(function->variable_list, (char *)function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
         }
         else
         {
-            // FIXME:
-            emit("mov [rbp+%ld], [rbp-%ld]", (i - ARGS_REGISTER_SIZE + 2) * VAR_SIZE, (i + 1) * VAR_SIZE);
+            emit("mov r10, [rbp+%ld]", (i - ARGS_REGISTER_SIZE + 2) * VAR_SIZE);
+            emit("mov [rbp-%ld], r10", offset);
         }
     }
 }

@@ -123,6 +123,8 @@ try -i 50 'main() { x = 0; y = 0; while(y < 5) { x = x + 10; y = y + 1; } return
 try -i 10 'f(x) { return x + 5; } main(){ n = f(5); return n; }'
 try -i 120 'f(x) { if(x == 0) return 1; return x * f(x-1); } main(){ return f(5); }'
 try -i 1 'f(x) { if(x == 0) return 1; return x * f(x-1); } main(){ return f(1); }'
+try -i 10 'f(x,y,z) { return x + y + z; } main() { n = f(1,2,3); return n + 4; }'
+try -i 7 'f(n1,n2,n3,n4,n5,n6,n7) { return n1 + n2 + n3 + n4 + n5 + n6 + n7; } main() { return f(1,1,1,1,1,1,1); } '
 try -f 42 ./test/test_file0.c
 try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c
