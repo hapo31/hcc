@@ -43,10 +43,9 @@ Node *block_items();
 Node *statement();
 Node *expression();
 Vector *parameters();
-Node *arg_list();
+Vector *arg_list();
 Function *function_def();
 Node *function_call();
-Node *semicoron_list();
 Node *ret();
 
 void program();
@@ -532,14 +531,23 @@ Node *semicoron_list()
     return node;
 }
 
-Node *arg_list()
+Vector *arg_list()
 {
-    if (current(')'))
+    /**
+     * arg_list: ε
+     * arg_list: expression
+     * arg_list: expression "," arg_list
+     */
+    Vector *args = new_vector(1);
+    while (!current(')'))
     {
-        return new_node(ND_EMPTY, NULL, NULL);
+        push_vector(args, expression());
+        if (consume(','))
+        {
+            continue;
+        }
     }
-
-    return semicoron_list();
+    return args;
 }
 
 Vector *parameters()
@@ -633,7 +641,7 @@ Node *function_call()
 
     if (consume('('))
     {
-        node->lhs = arg_list();
+        node->args = arg_list();
         if (!consume(')'))
         {
             error("関数呼び出しが ) で閉じられていません: %s", input());

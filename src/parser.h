@@ -14,6 +14,7 @@ typedef enum
     ND_DEF_FUNCTION,   // 関数定義
     ND_PARAMETERS,     // 仮引数リスト
     ND_SEMI_EXPR_LIST, // ,区切りの式リスト
+    ND_ARGS,           // 実引数
     ND_IF,             // if
     ND_ELSE,           // else
     ND_FOR,            // for
@@ -37,6 +38,8 @@ typedef struct tagNode
     char *name; // type == TK_IDENT のとき、その識別子の名前
     Vector *block_items;
     Vector *parameters;
+
+    Vector *args;
 
     struct tagNode *then;
 
