@@ -16,7 +16,6 @@ void epilogue();
 
 static FILE *output_fp;
 static Map *context_function_list;
-static Map *context_variable_list;
 static Function *function;
 
 const char *x86_64_args_registers[] = {
@@ -62,8 +61,6 @@ void gen_function(Function *function)
 {
     label("%s:", function->name);
 
-    context_variable_list = function->variable_list;
-
     prologue();
     gen_parameter();
     gen(function->top_level_code);
@@ -76,7 +73,7 @@ void prologue()
     // リターンアドレスをスタックに push し、ベースポインタの指すアドレスをスタックの先頭が指すアドレスとする
     emit("push rbp");
     emit("mov rbp, rsp");
-    emit("sub rsp, %ld", (context_variable_list->len) * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
+    emit("sub rsp, %ld", (function->variable_list->len) * VAR_SIZE); // 変数はすべてVAR_SIZEとしておく
 }
 
 void gen_lvalue(Node *node)
@@ -85,11 +82,11 @@ void gen_lvalue(Node *node)
     {
         error("代入の左辺値が変数ではありません。");
     }
-    if (!contains_map(context_variable_list, node->name))
+    if (!contains_map(function->variable_list, node->name))
     {
         error("変数が定義されていません: %s", node->name);
     }
-    int ident_index = (intptr_t)read_map(context_variable_list, node->name);
+    int ident_index = (intptr_t)read_map(function->variable_list, node->name);
     int offset = (ident_index + 1) * VAR_SIZE;
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
@@ -102,7 +99,7 @@ void gen_parameter()
     {
         if (i < ARGS_REGISTER_SIZE)
         {
-            int offset = ((intptr_t)read_map(context_variable_list, (char *)context_variable_list->keys->data[i]) + 1) * VAR_SIZE;
+            int offset = ((intptr_t)read_map(function->variable_list, (char *)function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
         }
         else
@@ -122,11 +119,10 @@ void gen(Node *node)
 
     if (node->type == ND_CALL_FUCTION)
     {
-        int args_len = 0;
-        if (node->lhs->type == ND_SEMI_EXPR_LIST)
+        int args_len = node->args->len;
+        if (args_len > 0)
         {
-            Vector *args = node->lhs->block_items;
-            args_len = args->len;
+            Vector *args = node->args;
 
             // スタックポインタを 16byte 境界にアライメント
             // emit("mov rax, rsp");
@@ -141,7 +137,7 @@ void gen(Node *node)
             // {
             //     emit("sub rsp, 8");
             // }
-            for (int i = args_len; i >= 0; --i)
+            for (int i = args_len - 1; i >= 0; --i)
             {
                 gen((Node *)args->data[i]);
                 if (i < ARGS_REGISTER_SIZE)
