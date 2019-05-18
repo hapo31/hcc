@@ -16,6 +16,8 @@ static int pos = 0;
 char *input();
 Token *token(Vector *token, int i);
 
+Variable *new_variable(NODE_TYPE type, char *name, size_t index);
+
 Node *new_node(NODE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name);
@@ -62,6 +64,18 @@ char *input()
 Token *token(Vector *token, int i)
 {
     return (Token *)tokens->data[i];
+}
+
+Variable *new_variable(NODE_TYPE type, char *name, size_t index)
+{
+    Variable *var = (Variable *)malloc(sizeof(Variable));
+    size_t name_len = strlen(name);
+    var->type = type;
+    var->name = (char *)malloc(sizeof(char) * (name_len + 1));
+    var->index = index;
+    strncpy(var->name, name, name_len);
+
+    return var;
 }
 
 Node *new_node(NODE type, Node *lhs, Node *rhs)
@@ -501,13 +515,9 @@ Node *statement()
         size_t len = strlen(identifier);
         if (contains_map(context_function->variable_list, identifier))
         {
-            error("変数名が重複しています: %s", token(tokens, pos + 1));
+            error("変数名が重複しています: %s", identifier);
         }
-        Variable *var = (Variable *)malloc(sizeof(Variable));
-        var->name = (char *)malloc(sizeof(char) * (len + 1));
-        strncpy(var->name, identifier, len);
-        // 型の種類を取得
-        var->type = type_name();
+        Variable *var = new_variable(type_name(), identifier, context_function->variable_list->len);
         put_map(context_function->variable_list, identifier, var);
 
         pos += 2;
@@ -664,7 +674,9 @@ Function *function_def()
     for (int i = 0; i < parameters_->len; ++i)
     {
         Node *param = parameters_->data[i];
-        put_map(variable_list, param->name, (void *)(intptr_t)i);
+        // 引数はとりあえず全部 int
+        Variable *var = new_variable(NT_INT, param->name, (size_t)i);
+        put_map(variable_list, param->name, var);
     }
 
     if (consume('{'))

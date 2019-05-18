@@ -64,6 +64,7 @@ typedef struct
 {
     NODE_TYPE type;
     char *name;
+    size_t index;
 } Variable;
 
 typedef struct

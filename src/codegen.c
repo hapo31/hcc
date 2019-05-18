@@ -85,8 +85,10 @@ void gen_lvalue(Node *node)
     {
         error("変数が定義されていません: %s", node->name);
     }
-    int ident_index = (intptr_t)read_map(context_function->variable_list, node->name);
-    int offset = (ident_index + 1) * VAR_SIZE;
+    Variable *var = (Variable *)read_map(context_function->variable_list, node->name);
+    size_t ident_index = var->index;
+    size_t offset = (ident_index + 1) * VAR_SIZE;
+    emit("#%s, %d", var->name, ident_index);
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
     emit("push rax");
@@ -96,7 +98,9 @@ void gen_parameter()
 {
     for (int i = 0; i < context_function->parameter_count; ++i)
     {
-        int offset = ((intptr_t)read_map(context_function->variable_list, (char *)context_function->variable_list->keys->data[i]) + 1) * VAR_SIZE;
+        Variable *var = (Variable *)read_map(context_function->variable_list, (char *)context_function->variable_list->keys->data[i]);
+        size_t ident_index = var->index;
+        size_t offset = (ident_index + 1) * VAR_SIZE;
         if (i < ARGS_REGISTER_SIZE)
         {
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
@@ -111,7 +115,7 @@ void gen_parameter()
 
 void gen(Node *node)
 {
-    if (node == NULL || node->type == ND_EMPTY)
+    if (node == NULL || node->type == ND_DEF_VAR || node->type == ND_EMPTY)
     {
         return;
     }
@@ -164,8 +168,12 @@ void gen(Node *node)
         for (int i = 0; i < node->block_items->len; ++i)
         {
             Node *block_node = (Node *)node->block_items->data[i];
-            gen(block_node);
-            emit("pop rax");
+            // 変数定義の行は無視する
+            if (block_node->type != ND_DEF_VAR)
+            {
+                gen(block_node);
+                emit("pop rax");
+            }
         }
         emit("push rax");
         return;
