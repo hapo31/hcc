@@ -1,5 +1,8 @@
 main()
 {
+  int x;
+  int y;
+  int z;
   x = 0;
   y = 0;
   z = 0;
