@@ -40,6 +40,15 @@ Vector *tokenize(char *p)
             continue;
         }
 
+        if (keyword(p, "int"))
+        {
+            token->type = TK_INT;
+            token->input = p;
+            ++i;
+            p += 3;
+            continue;
+        }
+
         if (keyword(p, "while"))
         {
             token->type = TK_WHILE;

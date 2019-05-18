@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -15,7 +16,7 @@ static int pos = 0;
 char *input();
 Token *token(Vector *token, int i);
 
-Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs);
+Node *new_node(NODE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name);
 Node *new_node_call_function(char *name);
@@ -30,6 +31,8 @@ bool current(int type);
 bool next(int type);
 bool prev(int type);
 
+bool is_typename();
+
 Node *add();
 Node *mul();
 Node *unary();
@@ -42,6 +45,7 @@ Node *while_statement();
 Node *block_items();
 Node *statement();
 Node *expression();
+NODE_TYPE type_name();
 Vector *parameters();
 Vector *arg_list();
 Function *function_def();
@@ -60,7 +64,7 @@ Token *token(Vector *token, int i)
     return (Token *)tokens->data[i];
 }
 
-Node *new_node(NODE_TYPE type, Node *lhs, Node *rhs)
+Node *new_node(NODE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = type;
@@ -157,6 +161,12 @@ bool next(int type)
 bool prev(int type)
 {
     return pos - 1 >= 0 && ((Token *)tokens->data[pos - 1])->type == type;
+}
+
+bool is_type_name()
+{
+    TOKEN_TYPE type = token(tokens, pos)->type;
+    return TK_INT <= type && type >= TK_INT;
 }
 
 Node *add()
@@ -269,14 +279,10 @@ Node *term()
 
         char *identifier = ((Token *)tokens->data[pos - 1])->identifier;
 
-        // 今見ている関数の変数一覧を取得する
-        Function *function = context_function;
-        Map *variable_list = function->variable_list;
-
-        if (!contains_map(variable_list, identifier))
+        // 変数が定義されているかどうか
+        if (!contains_map(context_function->variable_list, identifier))
         {
-            int len = variable_list->len;
-            put_map(variable_list, identifier, (void *)(intptr_t)len);
+            error("変数が定義されていません: %s", identifier);
         }
         return new_node_identifier(identifier);
     }
@@ -442,9 +448,6 @@ Node *block_items()
         }
         push_vector(node->block_items, statement());
     }
-
-    // "}" の次を指すようにしておく
-    ++pos;
     return node;
 }
 
@@ -452,6 +455,7 @@ Node *statement()
 {
     /**
      * statement: "{" block_items "}"
+     * statement: type_name ident ";"
      * statement: if_statement
      * statement: while_statement
      * statement: for_statement
@@ -463,7 +467,15 @@ Node *statement()
     Node *node = NULL;
     if (consume('{'))
     {
-        return block_items();
+        node = block_items();
+        if (consume('}'))
+        {
+            return node;
+        }
+        else
+        {
+            error("ブロックが閉じられていません: %s", input());
+        }
     }
     else if (consume(TK_IF))
     {
@@ -481,6 +493,26 @@ Node *statement()
     {
         node = ret();
         node->lhs = expression();
+    }
+    // 変数定義
+    else if (is_type_name() && next(TK_IDENT))
+    {
+        char *identifier = token(tokens, pos + 1)->identifier;
+        size_t len = strlen(identifier);
+        if (contains_map(context_function->variable_list, identifier))
+        {
+            error("変数名が重複しています: %s", token(tokens, pos + 1));
+        }
+        Variable *var = (Variable *)malloc(sizeof(Variable));
+        var->name = (char *)malloc(sizeof(char) * (len + 1));
+        strncpy(var->name, identifier, len);
+        // 型の種類を取得
+        var->type = type_name();
+        put_map(context_function->variable_list, identifier, var);
+
+        pos += 2;
+
+        node = new_node(ND_DEF_VAR, NULL, NULL);
     }
     else
     {
@@ -582,10 +614,27 @@ Vector *parameters()
     }
 }
 
+NODE_TYPE type_name()
+{
+    /*
+     * type_name: "int"
+     */
+
+    switch (token(tokens, pos)->type)
+    {
+    case TK_INT:
+        return NT_INT;
+        break;
+
+    default:
+        break;
+    }
+}
+
 Function *function_def()
 {
     /**
-     * function_def: function_name "(" parameters ")"
+     * function_def: type_name function_name "(" parameters ")"
      */
     Function *function = (Function *)malloc(sizeof(Function));
     // コンテキストを保存
@@ -621,6 +670,10 @@ Function *function_def()
     if (consume('{'))
     {
         function->top_level_code = block_items();
+        if (!consume('}'))
+        {
+            error("ブロックが閉じられていません: %s", input());
+        }
     }
     else
     {
@@ -674,6 +727,12 @@ void program()
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
+        // NODE_TYPE function_return_type = NT_VOID;
+        // // トークンが型名かどうかをチェック
+        // // 今は TK_INT だけだけど、型が増えたらenumが範囲に収まっているかという式にする
+        // if (current(TK_INT))
+        // {
+        // }
         if (consume(TK_IDENT))
         {
             if (consume('('))

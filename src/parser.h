@@ -12,6 +12,7 @@ typedef enum
     ND_IDENT,          // 識別子
     ND_CALL_FUCTION,   // 関数呼び出し
     ND_DEF_FUNCTION,   // 関数定義
+    ND_DEF_VAR,        // 変数定義
     ND_PARAMETERS,     // 仮引数リスト
     ND_SEMI_EXPR_LIST, // ,区切りの式リスト
     ND_ARGS,           // 実引数
@@ -27,11 +28,18 @@ typedef enum
     ND_LE,             // >=
     ND_LT,             // >
     ND_GT,             // <
+} NODE;
+
+typedef enum
+{
+    NT_VOID,
+    NT_INT
 } NODE_TYPE;
 
 typedef struct tagNode
 {
-    NODE_TYPE type;
+    NODE type;
+    NODE_TYPE node_type;
     struct tagNode *lhs;
     struct tagNode *rhs;
     int value;  // type == NUM のとき、その数値
@@ -54,7 +62,14 @@ typedef struct tagNode
 
 typedef struct
 {
+    NODE_TYPE type;
     char *name;
+} Variable;
+
+typedef struct
+{
+    char *name;
+    NODE_TYPE return_type;
     int parameter_count;
     Map *variable_list;
     Node *top_level_code;
