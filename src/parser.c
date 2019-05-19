@@ -511,17 +511,16 @@ Node *statement()
     // 変数定義
     else if (is_type_name() && next(TK_IDENT))
     {
-        char *identifier = token(tokens, pos + 1)->identifier;
-        size_t len = strlen(identifier);
+        NODE_TYPE type = type_name();
+        char *identifier = token(tokens, pos)->identifier;
         if (contains_map(context_function->variable_list, identifier))
         {
             error("変数名が重複しています: %s", identifier);
         }
-        Variable *var = new_variable(type_name(), identifier, context_function->variable_list->len);
+        Variable *var = new_variable(type, identifier, context_function->variable_list->len);
         put_map(context_function->variable_list, identifier, var);
 
-        pos += 2;
-
+        ++pos;
         node = new_node(ND_DEF_VAR, NULL, NULL);
     }
     else
@@ -608,10 +607,9 @@ Vector *parameters()
 
     do
     {
-        // この辺に引数の型の構文
-
-        // 引数名
-        push_vector(vec, new_node_identifier(token(tokens, pos)->identifier));
+        NODE_TYPE type = type_name();
+        Variable *var = new_variable(type, token(tokens, pos)->identifier, 0);
+        push_vector(vec, var);
         ++pos;
     } while (consume(','));
     if (consume(')'))
@@ -630,15 +628,20 @@ NODE_TYPE type_name()
      * type_name: "int"
      */
 
+    NODE_TYPE type = -1;
     switch (token(tokens, pos)->type)
     {
     case TK_INT:
-        return NT_INT;
+        type = NT_INT;
         break;
 
     default:
+        error("有効な型名ではありません: %s", input());
         break;
     }
+    ++pos;
+
+    return type;
 }
 
 Function *function_def()
@@ -673,10 +676,9 @@ Function *function_def()
     // 引数定義を変数定義に変換する
     for (int i = 0; i < parameters_->len; ++i)
     {
-        Node *param = parameters_->data[i];
-        // 引数はとりあえず全部 int
-        Variable *var = new_variable(NT_INT, param->name, (size_t)i);
-        put_map(variable_list, param->name, var);
+        Variable *param = parameters_->data[i];
+        param->index = (size_t)i;
+        put_map(variable_list, param->name, param);
     }
 
     if (consume('{'))
