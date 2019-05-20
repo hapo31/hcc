@@ -741,17 +741,17 @@ void program()
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
-        // NODE_TYPE function_return_type = NT_VOID;
-        // // トークンが型名かどうかをチェック
-        // // 今は TK_INT だけだけど、型が増えたらenumが範囲に収まっているかという式にする
-        // if (current(TK_INT))
-        // {
-        // }
+        NODE_TYPE function_return_type = NT_INT;
+        if (is_type_name())
+        {
+            function_return_type = type_name();
+        }
         if (consume(TK_IDENT))
         {
             if (consume('('))
             {
                 Function *function = function_def();
+                function->return_type = function_return_type;
                 put_map(functions, function->name, function);
             }
         }
