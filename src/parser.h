@@ -33,15 +33,22 @@ typedef enum
 typedef enum
 {
     NT_VOID,
+    NT_PTR,
     NT_INT
 } NODE_TYPE;
 
-typedef struct tagNode
+typedef struct TypeNode
+{
+    NODE_TYPE type;
+    struct TypeNode *ptr_of;
+} TypeNode;
+
+typedef struct Node
 {
     NODE type;
-    NODE_TYPE node_type;
-    struct tagNode *lhs;
-    struct tagNode *rhs;
+    TypeNode *node_type;
+    struct Node *lhs;
+    struct Node *rhs;
     int value;  // type == NUM のとき、その数値
     char *name; // type == TK_IDENT のとき、その識別子の名前
     Vector *block_items;
@@ -49,20 +56,20 @@ typedef struct tagNode
 
     Vector *args;
 
-    struct tagNode *then;
+    struct Node *then;
 
     // for "if" statement
-    struct tagNode *condition;
-    struct tagNode *else_;
+    struct Node *condition;
+    struct Node *else_;
     // for "for" statement
-    struct tagNode *init_expression;
-    struct tagNode *loop_expression;
+    struct Node *init_expression;
+    struct Node *loop_expression;
 
 } Node;
 
 typedef struct
 {
-    NODE_TYPE type;
+    TypeNode *type_node;
     char *name;
     size_t index;
 } Variable;
@@ -70,8 +77,8 @@ typedef struct
 typedef struct
 {
     char *name;
-    NODE_TYPE return_type;
-    int parameter_count;
+    TypeNode *return_type;
+    size_t parameter_count;
     Map *variable_list;
     Node *top_level_code;
 } Function;

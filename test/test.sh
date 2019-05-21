@@ -126,6 +126,7 @@ try -i 1 'f(int x) { if(x == 0) return 1; return x * f(x-1); } main(){ return f(
 try -i 10 'f(int x,int y,int z) { return x + y + z; } main() { int n; n = f(1,2,3); return n + 4; }'
 try -i 7 'f(int n1,int n2,int n3,int n4,int n5,int n6,int n7) { return n1 + n2 + n3 + n4 + n5 + n6 + n7; } main() { return f(1,1,1,1,1,1,1); } '
 try -i 1 'int f(int x) { return x * 10; } int main() { int n; n = f(10); return n == 100; }'
+try -i 0 'int main() { int* n; n = 0; return 0; }'
 try -f 42 ./test/test_file0.c
 try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c

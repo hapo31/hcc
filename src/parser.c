@@ -11,12 +11,12 @@ static Vector *tokens;
 static Map *functions;
 static Function *context_function;
 
-static int pos = 0;
+static size_t pos = 0;
 
 char *input();
 Token *token(Vector *token, int i);
 
-Variable *new_variable(NODE_TYPE type, char *name, size_t index);
+Variable *new_variable(TypeNode *type_node, char *name, size_t index);
 
 Node *new_node(NODE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
@@ -33,7 +33,8 @@ bool current(int type);
 bool next(int type);
 bool prev(int type);
 
-bool is_typename();
+bool is_type_name();
+bool is_variable_def();
 
 Node *add();
 Node *mul();
@@ -48,6 +49,7 @@ Node *block_items();
 Node *statement();
 Node *expression();
 NODE_TYPE type_name();
+TypeNode *type();
 Vector *parameters();
 Vector *arg_list();
 Function *function_def();
@@ -66,11 +68,11 @@ Token *token(Vector *token, int i)
     return (Token *)tokens->data[i];
 }
 
-Variable *new_variable(NODE_TYPE type, char *name, size_t index)
+Variable *new_variable(TypeNode *type_node, char *name, size_t index)
 {
     Variable *var = (Variable *)malloc(sizeof(Variable));
     size_t name_len = strlen(name);
-    var->type = type;
+    var->type_node = type_node;
     var->name = (char *)malloc(sizeof(char) * (name_len + 1));
     var->index = index;
     strncpy(var->name, name, name_len);
@@ -81,6 +83,11 @@ Variable *new_variable(NODE_TYPE type, char *name, size_t index)
 Node *new_node(NODE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
+    if (rhs != NULL)
+    {
+        // 右辺値の型を引き継ぐ
+        node->node_type = rhs->node_type;
+    }
     node->type = type;
     node->lhs = lhs;
     node->rhs = rhs;
@@ -183,6 +190,28 @@ bool is_type_name()
     return TK_INT <= type && type >= TK_INT;
 }
 
+bool is_variable_def()
+{
+    if (!is_type_name())
+    {
+        return false;
+    }
+    size_t typename_pos = pos + 1;
+    TOKEN_TYPE token_type = token(tokens, typename_pos)->type;
+    char *debug = input();
+    while (token_type == '*')
+    {
+        ++typename_pos;
+        token_type = token(tokens, typename_pos)->type;
+        if (token_type == TK_EOF)
+        {
+            error("ポインタの型名が変です: %s ", debug);
+        }
+    }
+
+    return token(tokens, typename_pos)->type == TK_IDENT;
+}
+
 Node *add()
 {
     /**
@@ -268,6 +297,8 @@ Node *term()
      * term: num
      * term: ident
      * term: function_call
+     * term: "*" term
+     * term: "&" term
      * term: "(" expression ")"
      */
     if (consume('('))
@@ -279,6 +310,22 @@ Node *term()
             error("開きカッコに対応する閉じカッコがありません: %s", input());
         }
         return node;
+    }
+    else if (consume('*'))
+    {
+        Node *node = term();
+        Node *ptr_node = new_node('*', NULL, node);
+        if (node->node_type->type != NT_PTR)
+        {
+            error("*演算子はポインタに対して使われる必要があります: %s", input());
+        }
+        // 右辺の型をデリファレンスする
+        ptr_node->node_type = node->node_type->ptr_of;
+        return ptr_node;
+    }
+    else if (consume('&'))
+    {
+        error("未実装");
     }
     else if (consume(TK_NUM))
     {
@@ -469,7 +516,7 @@ Node *statement()
 {
     /**
      * statement: "{" block_items "}"
-     * statement: type_name ident ";"
+     * statement: type ident ";"
      * statement: if_statement
      * statement: while_statement
      * statement: for_statement
@@ -509,15 +556,15 @@ Node *statement()
         node->lhs = expression();
     }
     // 変数定義
-    else if (is_type_name() && next(TK_IDENT))
+    else if (is_variable_def())
     {
-        NODE_TYPE type = type_name();
+        TypeNode *identifier_type = type();
         char *identifier = token(tokens, pos)->identifier;
         if (contains_map(context_function->variable_list, identifier))
         {
             error("変数名が重複しています: %s", identifier);
         }
-        Variable *var = new_variable(type, identifier, context_function->variable_list->len);
+        Variable *var = new_variable(identifier_type, identifier, context_function->variable_list->len);
         put_map(context_function->variable_list, identifier, var);
 
         ++pos;
@@ -588,8 +635,8 @@ Vector *parameters()
 
     do
     {
-        NODE_TYPE type = type_name();
-        Variable *var = new_variable(type, token(tokens, pos)->identifier, 0);
+        TypeNode *param_type = type();
+        Variable *var = new_variable(param_type, token(tokens, pos)->identifier, 0);
         push_vector(vec, var);
         ++pos;
     } while (consume(','));
@@ -623,6 +670,29 @@ NODE_TYPE type_name()
     ++pos;
 
     return type;
+}
+
+TypeNode *type()
+{
+    /**
+     * type: "int"
+     * type: type "*"
+     */
+
+    TypeNode *type_node = (TypeNode *)malloc(sizeof(TypeNode));
+    type_node->type = type_name();
+    type_node->ptr_of = NULL;
+    TypeNode *source_type = type_node;
+    while (token(tokens, pos)->type == '*')
+    {
+        TypeNode *new_type_node = (TypeNode *)malloc(sizeof(TypeNode));
+        type_node->type = NT_PTR;
+        type_node->ptr_of = new_type_node;
+        type_node->ptr_of->ptr_of = NULL;
+        type_node = new_type_node;
+        ++pos;
+    }
+    return source_type;
 }
 
 Function *function_def()
@@ -722,10 +792,10 @@ void program()
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
-        NODE_TYPE function_return_type = NT_INT;
+        TypeNode *function_return_type = NULL;
         if (is_type_name())
         {
-            function_return_type = type_name();
+            function_return_type = type();
         }
         if (consume(TK_IDENT))
         {

@@ -12,6 +12,14 @@ void error(char *fmt, ...)
     exit(1);
 }
 
+void warning(char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+}
+
 int is_alpha_or_num(char c)
 {
     if (c >= 'A' && c <= 'Z' ||
