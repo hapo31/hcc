@@ -553,25 +553,6 @@ Node *expression()
     return node;
 }
 
-Node *semicoron_list()
-{
-    /**
-     * semicoron_list: expression
-     * semicoron_list: expression "," semicoron_list
-     * semicoron_list: ε
-     */
-
-    Node *node = new_node(ND_SEMI_EXPR_LIST, NULL, NULL);
-    node->block_items = new_vector(1);
-
-    do
-    {
-        push_vector(node->block_items, expression());
-    } while (consume(','));
-
-    return node;
-}
-
 Vector *arg_list()
 {
     /**
