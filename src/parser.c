@@ -314,7 +314,7 @@ Node *term()
     else if (consume('*'))
     {
         Node *node = term();
-        Node *ptr_node = new_node('*', NULL, node);
+        Node *ptr_node = new_node(ND_DEREF, node, NULL);
         if (node->node_type->type != NT_PTR)
         {
             error("*演算子はポインタに対して使われる必要があります: %s", input());
@@ -325,7 +325,13 @@ Node *term()
     }
     else if (consume('&'))
     {
-        error("未実装");
+        Node *node = term();
+        Node *target = new_node(ND_ADDR, NULL, node);
+        target->node_type = (TypeNode *)malloc(sizeof(TypeNode));
+        target->node_type->type = NT_PTR;
+        target->node_type->ptr_of = node->node_type;
+
+        return target;
     }
     else if (consume(TK_NUM))
     {
@@ -682,17 +688,16 @@ TypeNode *type()
     TypeNode *type_node = (TypeNode *)malloc(sizeof(TypeNode));
     type_node->type = type_name();
     type_node->ptr_of = NULL;
-    TypeNode *source_type = type_node;
     while (token(tokens, pos)->type == '*')
     {
         TypeNode *new_type_node = (TypeNode *)malloc(sizeof(TypeNode));
         type_node->type = NT_PTR;
-        type_node->ptr_of = new_type_node;
+        type_node->ptr_of = type_node;
         type_node->ptr_of->ptr_of = NULL;
         type_node = new_type_node;
         ++pos;
     }
-    return source_type;
+    return type_node;
 }
 
 Function *function_def()

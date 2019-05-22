@@ -16,6 +16,8 @@ typedef enum
     ND_PARAMETERS,     // 仮引数リスト
     ND_SEMI_EXPR_LIST, // ,区切りの式リスト
     ND_ARGS,           // 実引数
+    ND_DEREF,          // デリファレンス(*)演算子
+    ND_ADDR,           // アドレス(&)演算子
     ND_IF,             // if
     ND_ELSE,           // else
     ND_FOR,            // for
