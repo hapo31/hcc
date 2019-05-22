@@ -88,7 +88,6 @@ void gen_lvalue(Node *node)
     Variable *var = (Variable *)read_map(context_function->variable_list, node->name);
     size_t ident_index = var->index;
     size_t offset = (ident_index + 1) * VAR_SIZE;
-    emit("#%s, %d", var->name, ident_index);
     emit("mov rax, rbp");
     emit("sub rax, %d", offset);
     emit("push rax");
@@ -274,6 +273,32 @@ void gen(Node *node)
         emit("pop rax");
         emit("mov [rax], rdi");
         emit("push rdi");
+        return;
+    }
+
+    if (node->type == ND_DEREF)
+    {
+        // WIP
+        gen(node->lhs);
+        emit("pop rax");
+        emit("mul 4");
+        emit("lea rdx, [rax]");
+        emit("push rdx");
+        return;
+    }
+
+    if (node->type == ND_ADDR)
+    {
+        // WIP
+        if (node->rhs->type != ND_IDENT)
+        {
+            error("& 演算子は変数に対して使われる必要があります: %s");
+        }
+        char *name = node->rhs->name;
+        Variable *var = (Variable *)read_map(context_function->variable_list, name);
+        size_t offset = (var->index + 1) * VAR_SIZE;
+        emit("lea rax, [rbp - %ld]", offset);
+        emit("push rax");
         return;
     }
 
