@@ -20,7 +20,7 @@ Variable *new_variable(TypeNode *type_node, char *name, size_t index);
 
 Node *new_node(NODE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
-Node *new_node_identifier(char *name);
+Node *new_node_identifier(char *name, TypeNode *type);
 Node *new_node_call_function(char *name);
 Node *new_if_node();
 Node *new_for_node();
@@ -97,15 +97,18 @@ Node *new_node(NODE type, Node *lhs, Node *rhs)
 Node *new_node_num(int value)
 {
     Node *node = (Node *)malloc(sizeof(Node));
+    node->node_type = (TypeNode *)malloc(sizeof(TypeNode));
+    node->node_type->type = NT_INT;
     node->type = ND_NUM;
     node->value = value;
     return node;
 }
 
-Node *new_node_identifier(char *name)
+Node *new_node_identifier(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_IDENT;
+    node->node_type = type;
     node->name = name;
     return node;
 }
@@ -351,7 +354,8 @@ Node *term()
         {
             error("変数が定義されていません: %s", identifier);
         }
-        return new_node_identifier(identifier);
+        Variable *var = (Variable *)read_map(context_function->variable_list, identifier);
+        return new_node_identifier(identifier, var->type_node);
     }
 
     error("数値でも開きカッコでもないトークンです: %s", input());
@@ -691,9 +695,9 @@ TypeNode *type()
     while (token(tokens, pos)->type == '*')
     {
         TypeNode *new_type_node = (TypeNode *)malloc(sizeof(TypeNode));
-        type_node->type = NT_PTR;
+        new_type_node->type = NT_PTR;
+        new_type_node->ptr_of = NULL;
         type_node->ptr_of = type_node;
-        type_node->ptr_of->ptr_of = NULL;
         type_node = new_type_node;
         ++pos;
     }

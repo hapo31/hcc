@@ -4,6 +4,8 @@
 
 #include "codegen.h"
 
+size_t get_variable_offset(char *name);
+void label(const char *fmt, ...);
 void emit(const char *fmt, ...);
 void initial();
 void emit_global_functions();
@@ -32,6 +34,15 @@ int if_count = 0;
 int else_count = 0;
 int while_count = 0;
 int for_count = 0;
+
+size_t get_variable_offset(char *name)
+{
+    Variable *var = (Variable *)read_map(context_function->variable_list, name);
+    size_t ident_index = var->index;
+    size_t offset = (ident_index + 1) * VAR_SIZE;
+
+    return offset;
+}
 
 void label(const char *fmt, ...)
 {
@@ -77,19 +88,19 @@ void prologue()
 
 void gen_lvalue(Node *node)
 {
-    if (node->type != ND_IDENT)
+    if (node->type != ND_IDENT && node->type != ND_DEREF)
     {
-        error("代入の左辺値が変数ではありません。");
+        error("代入の左辺値が変数または間接演算子ではありません");
     }
-    if (!contains_map(context_function->variable_list, node->name))
-    {
-        error("変数が定義されていません: %s", node->name);
-    }
-    Variable *var = (Variable *)read_map(context_function->variable_list, node->name);
-    size_t ident_index = var->index;
-    size_t offset = (ident_index + 1) * VAR_SIZE;
     emit("mov rax, rbp");
-    emit("sub rax, %d", offset);
+    if (node->type == ND_DEREF)
+    {
+        emit("sub rax, %d", get_variable_offset(node->lhs->name));
+    }
+    else
+    {
+        emit("sub rax, %d", get_variable_offset(node->name));
+    }
     emit("push rax");
 }
 
@@ -97,9 +108,8 @@ void gen_parameter()
 {
     for (int i = 0; i < context_function->parameter_count; ++i)
     {
-        Variable *var = (Variable *)read_map(context_function->variable_list, (char *)context_function->variable_list->keys->data[i]);
-        size_t ident_index = var->index;
-        size_t offset = (ident_index + 1) * VAR_SIZE;
+        char *name = (char *)context_function->variable_list->keys->data[i];
+        size_t offset = get_variable_offset(name);
         if (i < ARGS_REGISTER_SIZE)
         {
             emit("mov [rbp-%ld], %s", offset, x86_64_args_registers[i]);
@@ -271,6 +281,10 @@ void gen(Node *node)
 
         emit("pop rdi");
         emit("pop rax");
+        if (node->lhs->type == ND_DEREF)
+        {
+            emit("mov rax, [rax]");
+        }
         emit("mov [rax], rdi");
         emit("push rdi");
         return;
@@ -278,27 +292,25 @@ void gen(Node *node)
 
     if (node->type == ND_DEREF)
     {
-        // WIP
-        gen(node->lhs);
+        gen_lvalue(node->lhs);
         emit("pop rax");
-        emit("mul 4");
-        emit("lea rdx, [rax]");
-        emit("push rdx");
+        // emit("mul %d", VAR_SIZE); // ポインタ演算はメモリ幅を掛ける
+        emit("mov rdi, [rax]");
+        emit("mov rax, [rdi]");
+        emit("push rax");
         return;
     }
 
     if (node->type == ND_ADDR)
     {
-        // WIP
         if (node->rhs->type != ND_IDENT)
         {
             error("& 演算子は変数に対して使われる必要があります: %s");
         }
         char *name = node->rhs->name;
-        Variable *var = (Variable *)read_map(context_function->variable_list, name);
-        size_t offset = (var->index + 1) * VAR_SIZE;
-        emit("lea rax, [rbp - %ld]", offset);
-        emit("push rax");
+        size_t offset = get_variable_offset(name);
+        emit("lea r10, [rbp - %ld]", offset);
+        emit("push r10");
         return;
     }
 
