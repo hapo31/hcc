@@ -21,7 +21,7 @@ Variable *new_variable(TypeNode *type_node, char *name, size_t index);
 Node *new_node(NODE type, Node *lhs, Node *rhs);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name, TypeNode *type);
-Node *new_node_call_function(char *name);
+Node *new_node_call_function(char *name, TypeNode *type);
 Node *new_if_node();
 Node *new_for_node();
 Node *new_while_node();
@@ -113,10 +113,11 @@ Node *new_node_identifier(char *name, TypeNode *type)
     return node;
 }
 
-Node *new_node_call_function(char *name)
+Node *new_node_call_function(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_CALL_FUCTION;
+    node->node_type = type;
     node->name = name;
     return node;
 }
@@ -318,10 +319,6 @@ Node *term()
     {
         Node *node = term();
         Node *ptr_node = new_node(ND_DEREF, node, NULL);
-        if (node->node_type->type != NT_PTR)
-        {
-            error("*演算子はポインタに対して使われる必要があります: %s", input());
-        }
         // 右辺の型をデリファレンスする
         ptr_node->node_type = node->node_type->ptr_of;
         return ptr_node;
@@ -729,6 +726,15 @@ Function *function_def()
 
     // 仮引数リストをパース
     Vector *parameters_ = parameters();
+
+    // 関数宣言なら引数は無いものとしてとりあえず終わる
+    if (consume(';'))
+    {
+        function->top_level_code = NULL;
+        function->parameter_count = parameters_->len;
+        return function;
+    }
+
     // 仮引数の数を保存
     function->parameter_count = parameters_->len;
 
@@ -741,6 +747,7 @@ Function *function_def()
         put_map(variable_list, param->name, param);
     }
 
+    // 関数定義
     if (consume('{'))
     {
         function->top_level_code = block_items();
@@ -764,7 +771,14 @@ Node *function_call()
      *
      */
 
-    Node *node = new_node_call_function(((Token *)tokens->data[pos - 1])->identifier);
+    char *name = ((Token *)tokens->data[pos - 1])->identifier;
+    if (!contains_map(functions, name))
+    {
+        error("存在しない関数の呼び出しです: %s", name);
+    }
+    Function *function = (Function *)read_map(functions, name);
+
+    Node *node = new_node_call_function(name, function->return_type);
 
     if (consume('('))
     {
@@ -796,6 +810,7 @@ void program()
      * program: function_definition program
      * program: ε
      *
+     * function_declaration: identifier "(" parameter_list ")" ";"
      * function_definition: identifier "(" parameter_list ")" "{" statement "}" program
      */
 
