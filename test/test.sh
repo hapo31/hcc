@@ -133,6 +133,8 @@ try -f 25 ./test/test_file1.c
 try_with_test_file 0 ./test/test_file2.c ./test/test_funcs.c
 try_with_test_file 6 ./test/test_file3.c ./test/test_funcs.c
 try_with_test_file 15 ./test/test_file4.c ./test/test_funcs.c
+try_with_test_file 0 ./test/pointer_test0.c ./test/test_func.c
+try_with_test_file 0 ./test/pointer_test1.c ./test/test_func.c
 
 echo ---------------------------------------------------------------------
 
