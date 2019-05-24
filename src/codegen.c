@@ -294,7 +294,6 @@ void gen(Node *node)
     {
         gen_lvalue(node->lhs);
         emit("pop rax");
-        // emit("mul %d", VAR_SIZE); // ポインタ演算はメモリ幅を掛ける
         emit("mov rdi, [rax]");
         emit("mov rax, [rdi]");
         emit("push rax");
@@ -317,8 +316,47 @@ void gen(Node *node)
     gen(node->lhs);
     gen(node->rhs);
 
-    emit("pop rdi");
-    emit("pop rax");
+    // 右辺がポインタだったら、左辺を掛け算する
+    if (node->lhs->node_type->type == NT_INT && node->rhs->node_type->type == NT_PTR)
+    {
+        emit("pop rdi"); // 右辺
+        emit("pop rax"); // 左辺
+
+        // ポインタのポインタなら *8
+        if (node->rhs->node_type->ptr_of->type == NT_PTR)
+        {
+
+            emit("mul %d", 8); // 左辺を掛け算する
+        }
+        // ただのポインタなら *4
+        else
+        {
+            emit("mul %d", 4); // 左辺を掛け算する
+        }
+    }
+    // 左辺がポインタだったら、右辺を掛け算する
+    else if (node->lhs->node_type->type == NT_PTR && node->rhs->node_type->type == NT_INT)
+    {
+        emit("pop rax"); // 右辺
+        emit("pop rdi"); // 左辺
+
+        // ポインタのポインタなら *8
+        if (node->lhs->node_type->ptr_of->type == NT_PTR)
+        {
+
+            emit("mul %d", VAR_SIZE); //  右辺を掛け算する
+        }
+        // ただのポインタなら *4
+        else
+        {
+            emit("mul %d", VAR_SIZE); //  右辺を掛け算する
+        }
+    }
+    else
+    {
+        emit("pop rdi");
+        emit("pop rax");
+    }
 
     switch (node->type)
     {
