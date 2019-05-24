@@ -33,7 +33,7 @@ int h()
 void allocate(int **src, int a1, int a2, int a3)
 {
     *src = (int *)malloc(sizeof(int) * 3);
-    src[0] = a1;
-    src[1] = a2;
-    src[3] = a3;
+    (*src)[0] = a1;
+    (*src)[1] = a2;
+    (*src)[3] = a3;
 }
