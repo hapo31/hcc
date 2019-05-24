@@ -2,9 +2,9 @@
 
 typedef struct
 {
-  void **data;
-  int capacity;
-  int len;
+    void **data;
+    int capacity;
+    int len;
 } Vector;
 
 Vector *new_vector(int capacity);

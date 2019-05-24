@@ -2,9 +2,9 @@
 
 typedef struct
 {
-  size_t len;
-  size_t capacity;
-  char *str;
+    size_t len;
+    size_t capacity;
+    char *str;
 } String;
 
 String *new_string();
