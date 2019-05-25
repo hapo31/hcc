@@ -1,4 +1,4 @@
-
+int allocate();
 
 int main()
 {

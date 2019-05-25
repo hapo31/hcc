@@ -1,3 +1,6 @@
+int f1();
+int g2();
+
 main()
 {
     int x;
