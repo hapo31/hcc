@@ -1,6 +1,6 @@
 int f();
 
-main()
+int main()
 {
     f();
 

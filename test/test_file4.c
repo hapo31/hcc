@@ -1,7 +1,7 @@
 int f1();
 int g2();
 
-main()
+int main()
 {
     int x;
     int y;
