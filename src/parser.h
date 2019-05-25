@@ -35,8 +35,9 @@ typedef enum
 typedef enum
 {
     NT_VOID,
+    NT_INT,
     NT_PTR,
-    NT_INT
+    NT_UNKOWN // 型が不定の場合に使う 内部表現のみ
 } NODE_TYPE;
 
 typedef struct TypeNode

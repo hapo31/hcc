@@ -69,6 +69,10 @@ void initial()
 
 void gen_function(Function *function)
 {
+    if (context_function->top_level_code == NULL)
+    {
+        return;
+    }
     label("%s:", function->name);
 
     prologue();
@@ -292,7 +296,7 @@ void gen(Node *node)
 
     if (node->type == ND_DEREF)
     {
-        gen_lvalue(node->lhs);
+        gen(node->lhs);
         emit("pop rax");
         emit("mov rdi, [rax]");
         emit("mov rax, [rdi]");
@@ -316,47 +320,8 @@ void gen(Node *node)
     gen(node->lhs);
     gen(node->rhs);
 
-    // 右辺がポインタだったら、左辺を掛け算する
-    if (node->lhs->node_type->type == NT_INT && node->rhs->node_type->type == NT_PTR)
-    {
-        emit("pop rdi"); // 右辺
-        emit("pop rax"); // 左辺
-
-        // ポインタのポインタなら *8
-        if (node->rhs->node_type->ptr_of->type == NT_PTR)
-        {
-
-            emit("mul %d", 8); // 左辺を掛け算する
-        }
-        // ただのポインタなら *4
-        else
-        {
-            emit("mul %d", 4); // 左辺を掛け算する
-        }
-    }
-    // 左辺がポインタだったら、右辺を掛け算する
-    else if (node->lhs->node_type->type == NT_PTR && node->rhs->node_type->type == NT_INT)
-    {
-        emit("pop rax"); // 右辺
-        emit("pop rdi"); // 左辺
-
-        // ポインタのポインタなら *8
-        if (node->lhs->node_type->ptr_of->type == NT_PTR)
-        {
-
-            emit("mul %d", VAR_SIZE); //  右辺を掛け算する
-        }
-        // ただのポインタなら *4
-        else
-        {
-            emit("mul %d", VAR_SIZE); //  右辺を掛け算する
-        }
-    }
-    else
-    {
-        emit("pop rdi");
-        emit("pop rax");
-    }
+    emit("pop rdi");
+    emit("pop rax");
 
     switch (node->type)
     {

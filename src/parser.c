@@ -16,9 +16,11 @@ static size_t pos = 0;
 char *input();
 Token *token(Vector *token, int i);
 
+TypeNode *new_type_node(NODE_TYPE type);
 Variable *new_variable(TypeNode *type_node, char *name, size_t index);
 
 Node *new_node(NODE type, Node *lhs, Node *rhs);
+Node *new_node_variable_def(char *name);
 Node *new_node_num(int value);
 Node *new_node_identifier(char *name, TypeNode *type);
 Node *new_node_call_function(char *name, TypeNode *type);
@@ -52,7 +54,7 @@ NODE_TYPE type_name();
 TypeNode *type();
 Vector *parameters();
 Vector *arg_list();
-Function *function_def();
+Function *function_def(TypeNode *return_type);
 Node *function_call();
 Node *ret();
 
@@ -68,11 +70,41 @@ Token *token(Vector *token, int i)
     return (Token *)tokens->data[i];
 }
 
+TypeNode *deep_copy_type_node(TypeNode *src)
+{
+    TypeNode *dest_top = NULL;
+    TypeNode *dest_itr = dest_top;
+
+    if (src == NULL)
+    {
+        return NULL;
+    }
+
+    do
+    {
+        dest_itr = (TypeNode *)malloc(sizeof(TypeNode));
+        dest_itr->type = src->type;
+        dest_itr->ptr_of = src->ptr_of;
+        dest_itr = dest_itr->ptr_of;
+        src = src->ptr_of;
+    } while (src != NULL);
+
+    return dest_top;
+}
+
+TypeNode *new_type_node(NODE_TYPE type)
+{
+    TypeNode *type_node = (TypeNode *)malloc(sizeof(TypeNode));
+    type_node->type = type;
+    type_node->ptr_of = NULL;
+    return type_node;
+}
+
 Variable *new_variable(TypeNode *type_node, char *name, size_t index)
 {
     Variable *var = (Variable *)malloc(sizeof(Variable));
     size_t name_len = strlen(name);
-    var->type_node = type_node;
+    var->type_node = deep_copy_type_node(type_node);
     var->name = (char *)malloc(sizeof(char) * (name_len + 1));
     var->index = index;
     strncpy(var->name, name, name_len);
@@ -83,22 +115,27 @@ Variable *new_variable(TypeNode *type_node, char *name, size_t index)
 Node *new_node(NODE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
-    if (rhs != NULL)
-    {
-        // 右辺値の型を引き継ぐ
-        node->node_type = rhs->node_type;
-    }
+
     node->type = type;
+    node->node_type = new_type_node(NT_UNKOWN);
     node->lhs = lhs;
     node->rhs = rhs;
+    return node;
+}
+
+Node *new_node_variable_def(char *name)
+{
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->type = ND_DEF_VAR;
+    node->name = name;
+
     return node;
 }
 
 Node *new_node_num(int value)
 {
     Node *node = (Node *)malloc(sizeof(Node));
-    node->node_type = (TypeNode *)malloc(sizeof(TypeNode));
-    node->node_type->type = NT_INT;
+    node->node_type = new_type_node(NT_INT);
     node->type = ND_NUM;
     node->value = value;
     return node;
@@ -108,7 +145,7 @@ Node *new_node_identifier(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_IDENT;
-    node->node_type = type;
+    node->node_type = deep_copy_type_node(type);
     node->name = name;
     return node;
 }
@@ -117,7 +154,7 @@ Node *new_node_call_function(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->type = ND_CALL_FUCTION;
-    node->node_type = type;
+    node->node_type = deep_copy_type_node(type);
     node->name = name;
     return node;
 }
@@ -279,6 +316,8 @@ Node *unary()
      * unary: term
      * unary: "+" term
      * unary: "-" term
+     * unary: "*" term
+     * unary: "&" term
      */
 
     if (consume('+'))
@@ -288,6 +327,14 @@ Node *unary()
     else if (consume('-'))
     {
         return new_node('-', new_node_num(0), term());
+    }
+    else if (consume('*'))
+    {
+        return new_node(ND_DEREF, term(), NULL);
+    }
+    else if (consume('&'))
+    {
+        return new_node(ND_ADDR, NULL, term());
     }
     else
     {
@@ -301,8 +348,6 @@ Node *term()
      * term: num
      * term: ident
      * term: function_call
-     * term: "*" term
-     * term: "&" term
      * term: "(" expression ")"
      */
     if (consume('('))
@@ -314,24 +359,6 @@ Node *term()
             error("開きカッコに対応する閉じカッコがありません: %s", input());
         }
         return node;
-    }
-    else if (consume('*'))
-    {
-        Node *node = term();
-        Node *ptr_node = new_node(ND_DEREF, node, NULL);
-        // 右辺の型をデリファレンスする
-        ptr_node->node_type = node->node_type->ptr_of;
-        return ptr_node;
-    }
-    else if (consume('&'))
-    {
-        Node *node = term();
-        Node *target = new_node(ND_ADDR, NULL, node);
-        target->node_type = (TypeNode *)malloc(sizeof(TypeNode));
-        target->node_type->type = NT_PTR;
-        target->node_type->ptr_of = node->node_type;
-
-        return target;
     }
     else if (consume(TK_NUM))
     {
@@ -575,7 +602,7 @@ Node *statement()
         put_map(context_function->variable_list, identifier, var);
 
         ++pos;
-        node = new_node(ND_DEF_VAR, NULL, NULL);
+        node = new_node_variable_def(identifier);
     }
     else
     {
@@ -691,22 +718,21 @@ TypeNode *type()
     type_node->ptr_of = NULL;
     while (token(tokens, pos)->type == '*')
     {
-        TypeNode *new_type_node = (TypeNode *)malloc(sizeof(TypeNode));
-        new_type_node->type = NT_PTR;
-        new_type_node->ptr_of = NULL;
+        TypeNode *newer_type_node = new_type_node(type_node->type);
         type_node->ptr_of = type_node;
-        type_node = new_type_node;
+        type_node = newer_type_node;
         ++pos;
     }
     return type_node;
 }
 
-Function *function_def()
+Function *function_def(TypeNode *return_type)
 {
     /**
      * function_def: type_name function_name "(" parameters ")"
      */
     Function *function = (Function *)malloc(sizeof(Function));
+    function->return_type = return_type;
     // コンテキストを保存
     context_function = function;
 
@@ -816,17 +842,16 @@ void program()
 
     while (((Token *)tokens->data[pos])->type != TK_EOF)
     {
-        TypeNode *function_return_type = NULL;
+        TypeNode *return_type = NULL;
         if (is_type_name())
         {
-            function_return_type = type();
+            return_type = type();
         }
         if (consume(TK_IDENT))
         {
             if (consume('('))
             {
-                Function *function = function_def();
-                function->return_type = function_return_type;
+                Function *function = function_def(return_type);
                 put_map(functions, function->name, function);
             }
         }
