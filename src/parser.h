@@ -32,6 +32,7 @@ typedef enum
     ND_GT,             // <
 } NODE;
 
+// 型の優先順位順に並んでいる
 typedef enum
 {
     NT_VOID,
