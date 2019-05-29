@@ -2,7 +2,7 @@ CFLAGS=-O0 -g
 SRCS=$(wildcard src/*.c)
 OBJS=$(notdir $(SRCS:%.c=%.o))
 
-all: $(OBJS)
+hcc: $(OBJS)
 	gcc -o hcc $(OBJS)
 
 $(OBJS): $(SRCS)
