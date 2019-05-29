@@ -19,6 +19,8 @@ Map *typecheck(Map *parse_result)
 void node_type_check(Node *node)
 {
     if (node == NULL ||
+        node->type == ND_IDENT ||
+        node->type == ND_NUM ||
         node->type == ND_DEF_VAR ||
         node->type == ND_DEF_FUNCTION ||
         node->type == ND_EMPTY)
@@ -32,6 +34,7 @@ void node_type_check(Node *node)
         {
             node_type_check((Node *)node->block_items->data[i]);
         }
+        return;
     }
 
     if (node->type == ND_IF)
@@ -39,12 +42,20 @@ void node_type_check(Node *node)
         node_type_check(node->condition);
         node_type_check(node->else_);
         node_type_check(node->then);
+        return;
+    }
+
+    if (node->type == ND_FOR)
+    {
+        // WIP
+        return;
     }
 
     if (node->type == ND_WHILE)
     {
         node_type_check(node->condition);
         node_type_check(node->then);
+        return;
     }
 
     if (node->type == ND_DEREF)
@@ -54,12 +65,7 @@ void node_type_check(Node *node)
         {
             error("デリファレンス(*)はポインタ型に対して使われる必要があります");
         }
-    }
-
-    if (node->type == '=')
-    {
-        node_type_check(node->lhs);
-        node_type_check(node->rhs);
+        return;
     }
 
     if (node->type == '*' || node->type == '/')
@@ -67,10 +73,12 @@ void node_type_check(Node *node)
         TypeNode *rhs_type = get_term_type(node->rhs);
         TypeNode *lhs_type = get_term_type(node->lhs);
 
-        if (rhs_type->type == NT_PTR || lhs_type->type != NT_PTR)
+        if (rhs_type->type == NT_PTR || lhs_type->type == NT_PTR)
         {
             error("%c はポインタに対して適用出来ません", node->type);
         }
+
+        return;
     }
 
     node_type_check(node->lhs);
@@ -79,6 +87,11 @@ void node_type_check(Node *node)
 
 TypeNode *get_term_type(Node *term)
 {
+
+    if (term->node_type == NULL)
+    {
+        return NULL;
+    }
 
     if (term->node_type->type == NT_VOID)
     {
