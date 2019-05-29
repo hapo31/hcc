@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     // 抽象構文木を作成
     Map *parse_result = parse(tokenize_result);
 
-    typecheck(parse_result);
+    // typecheck(parse_result);
 
     // コード出力
     codegen(stdout, parse_result);
