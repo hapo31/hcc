@@ -1,28 +1,12 @@
 CFLAGS=-O0 -g
+SRCS=$(wildcard src/*.c)
+OBJS=$(notdir $(SRCS:%.c=%.o))
 
-hcc: hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
-	gcc -o hcc hcc.o tokenizer.o parser.o codegen.o utils.o map.o vector.o
+all: $(OBJS)
+	gcc -o hcc $(OBJS)
 
-utils.o: src/utils.c
-	gcc -c src/utils.c $(CFLAGS)
-
-tokenizer.o: src/tokenizer.c
-	gcc -c src/tokenizer.c $(CFLAGS)
-
-parser.o: src/parser.c
-	gcc -c src/parser.c $(CFLAGS)
-
-codegen.o: src/codegen.c
-	gcc -c src/codegen.c $(CFLAGS)
-
-map.o: src/map.c
-	gcc -c src/map.c $(CFLAGS)
-
-vector.o: src/vector.c
-	gcc -c src/vector.c $(CFLAGS)
-
-hcc.o: src/hcc.c
-	gcc -c src/hcc.c $(CFLAGS)
+$(OBJS): $(SRCS)
+	gcc -c $(SRCS) $(CFLAGS)
 
 test.o:
 	gcc -c test/test.c $(CFLAGS)

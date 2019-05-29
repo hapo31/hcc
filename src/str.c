@@ -3,7 +3,7 @@
 
 #include "str.h"
 
-String *new_vector()
+String *new_string()
 {
     String *str = (String *)malloc(sizeof(String));
     str->str = (char *)malloc(sizeof(char));
