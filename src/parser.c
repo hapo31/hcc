@@ -135,6 +135,8 @@ Node *new_node_variable_def(char *name)
 Node *new_node_num(int value)
 {
     Node *node = (Node *)malloc(sizeof(Node));
+    node->lhs = NULL;
+    node->rhs = NULL;
     node->node_type = new_type_node(NT_INT);
     node->type = ND_NUM;
     node->value = value;
@@ -144,6 +146,8 @@ Node *new_node_num(int value)
 Node *new_node_identifier(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
+    node->lhs = NULL;
+    node->rhs = NULL;
     node->type = ND_IDENT;
     node->node_type = deep_copy_type_node(type);
     node->name = name;
@@ -153,6 +157,8 @@ Node *new_node_identifier(char *name, TypeNode *type)
 Node *new_node_call_function(char *name, TypeNode *type)
 {
     Node *node = (Node *)malloc(sizeof(Node));
+    node->lhs = NULL;
+    node->rhs = NULL;
     node->type = ND_CALL_FUCTION;
     node->node_type = deep_copy_type_node(type);
     node->name = name;
