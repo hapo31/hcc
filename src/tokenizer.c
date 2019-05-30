@@ -37,7 +37,7 @@ Vector *tokenize(char *p)
             token->input = p;
             ++i;
             p += 6;
-            return;
+            continue;
         }
 
         if (keyword(p, "for"))
