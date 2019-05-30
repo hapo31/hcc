@@ -19,6 +19,7 @@ typedef enum
     TK_LT,     // >
     TK_GT,     // <
     TK_GOTO,   // goto
+    TK_SIZEOF, // sizeof
     TK_INT,    // int
     TK_EOF,
 } TOKEN_TYPE;

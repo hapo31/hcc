@@ -31,6 +31,15 @@ Vector *tokenize(char *p)
         Token *token = malloc(sizeof(Token));
         push_vector(tokens, token);
 
+        if (keyword(p, "sizeof"))
+        {
+            token->type = TK_SIZEOF;
+            token->input = p;
+            ++i;
+            p += 6;
+            return;
+        }
+
         if (keyword(p, "for"))
         {
             token->type = TK_FOR;
