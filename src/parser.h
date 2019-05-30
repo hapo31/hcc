@@ -18,6 +18,7 @@ typedef enum
     ND_ARGS,           // 実引数
     ND_DEREF,          // デリファレンス(*)演算子
     ND_ADDR,           // アドレス(&)演算子
+    ND_SIZEOF,         // sizeof
     ND_IF,             // if
     ND_ELSE,           // else
     ND_FOR,            // for
@@ -45,6 +46,7 @@ typedef struct TypeNode
 {
     NODE_TYPE type;
     struct TypeNode *ptr_of;
+    size_t size;
 } TypeNode;
 
 typedef struct Node

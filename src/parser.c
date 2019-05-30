@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -17,6 +18,8 @@ char *input();
 Token *token(Vector *token, int i);
 
 TypeNode *new_type_node(NODE_TYPE type);
+TypeNode *get_node_type(Node *node);
+TypeNode *get_higher_priority_node_type(Node *lhs, Node *rhs);
 Variable *new_variable(TypeNode *type_node, char *name, size_t index);
 
 Node *new_node(NODE type, Node *lhs, Node *rhs);
@@ -72,8 +75,8 @@ Token *token(Vector *token, int i)
 
 TypeNode *deep_copy_type_node(TypeNode *src)
 {
+    TypeNode *dest_itr = NULL;
     TypeNode *dest_top = NULL;
-    TypeNode *dest_itr = dest_top;
 
     if (src == NULL)
     {
@@ -82,13 +85,18 @@ TypeNode *deep_copy_type_node(TypeNode *src)
 
     do
     {
-        dest_itr = (TypeNode *)malloc(sizeof(TypeNode));
-        dest_itr->type = src->type;
+        dest_itr = new_type_node(src->type);
+        if (dest_top == NULL)
+        {
+            dest_top = dest_itr;
+        }
         dest_itr->ptr_of = src->ptr_of;
         dest_itr = dest_itr->ptr_of;
         src = src->ptr_of;
+
     } while (src != NULL);
 
+    assert(dest_top != NULL);
     return dest_top;
 }
 
@@ -96,8 +104,63 @@ TypeNode *new_type_node(NODE_TYPE type)
 {
     TypeNode *type_node = (TypeNode *)malloc(sizeof(TypeNode));
     type_node->type = type;
+
+    switch (type)
+    {
+    case NT_VOID:
+        type_node->size = 0;
+        break;
+    case NT_INT:
+        type_node->size = 4;
+        break;
+    case NT_PTR:
+        type_node->size = 8;
+        break;
+
+    default:
+        error("知らない型です: %s", input());
+    }
+
     type_node->ptr_of = NULL;
     return type_node;
+}
+
+TypeNode *get_node_type(Node *node)
+{
+    if (node == NULL)
+    {
+        return NULL;
+    }
+    if (node->type == ND_IDENT || node->type == ND_NUM)
+    {
+        return node->node_type;
+    }
+
+    return get_higher_priority_node_type(node->lhs, node->rhs);
+}
+
+TypeNode *get_higher_priority_node_type(Node *lhs, Node *rhs)
+{
+    TypeNode *lhs_type = get_node_type(lhs);
+    TypeNode *rhs_type = get_node_type(rhs);
+
+    if (lhs_type != NULL && rhs_type != NULL)
+    {
+        return lhs_type->type == NT_PTR ? lhs_type : rhs_type;
+    }
+    else if (lhs_type == NULL)
+    {
+        return rhs_type;
+    }
+    else if (rhs_type == NULL)
+    {
+        return lhs_type;
+    }
+    else
+    {
+        // たぶんif文とかfor文
+        return new_type_node(NT_VOID);
+    }
 }
 
 Variable *new_variable(TypeNode *type_node, char *name, size_t index)
@@ -115,9 +178,11 @@ Variable *new_variable(TypeNode *type_node, char *name, size_t index)
 Node *new_node(NODE type, Node *lhs, Node *rhs)
 {
     Node *node = (Node *)malloc(sizeof(Node));
-
     node->type = type;
-    node->node_type = new_type_node(NT_UNKOWN);
+
+    TypeNode *type_node = get_higher_priority_node_type(lhs, rhs);
+
+    node->node_type = deep_copy_type_node(type_node);
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -320,27 +385,34 @@ Node *unary()
 {
     /**
      * unary: term
-     * unary: "+" term
-     * unary: "-" term
-     * unary: "*" term
-     * unary: "&" term
+     * unary: "+" unary
+     * unary: "-" unary
+     * unary: "*" unary
+     * unary: "&" unary
+     * unary: "sizeof" unary
      */
 
     if (consume('+'))
     {
-        return term();
+        return unary();
     }
     else if (consume('-'))
     {
-        return new_node('-', new_node_num(0), term());
+        return new_node('-', new_node_num(0), unary());
     }
     else if (consume('*'))
     {
-        return new_node(ND_DEREF, term(), NULL);
+        return new_node(ND_DEREF, unary(), NULL);
     }
     else if (consume('&'))
     {
-        return new_node(ND_ADDR, NULL, term());
+        return new_node(ND_ADDR, NULL, unary());
+    }
+    else if (consume(TK_SIZEOF))
+    {
+        Node *node = unary();
+
+        return new_node_num(node->node_type->size);
     }
     else
     {
@@ -720,16 +792,19 @@ TypeNode *type()
      */
 
     TypeNode *type_node = (TypeNode *)malloc(sizeof(TypeNode));
+    TypeNode *dest = type_node;
     type_node->type = type_name();
     type_node->ptr_of = NULL;
     while (token(tokens, pos)->type == '*')
     {
-        TypeNode *newer_type_node = new_type_node(type_node->type);
-        type_node->ptr_of = type_node;
-        type_node = newer_type_node;
+        TypeNode *ptrof = new_type_node(type_node->type);
+        type_node->type = NT_PTR;
+        type_node->size = 8;
+        ptrof->ptr_of = type_node;
+        type_node = ptrof;
         ++pos;
     }
-    return type_node;
+    return dest;
 }
 
 Function *function_def(TypeNode *return_type)
