@@ -298,8 +298,7 @@ void gen(Node *node)
     {
         gen(node->lhs);
         emit("pop rax");
-        emit("mov rdi, [rax]");
-        emit("mov rax, [rdi]");
+        emit("mov rax, [rax]");
         emit("push rax");
         return;
     }

@@ -128,6 +128,7 @@ try -i 7 'int f(int n1,int n2,int n3,int n4,int n5,int n6,int n7) { return n1 + 
 try -i 1 'int f(int x) { return x * 10; } int main() { int n; n = f(10); return n == 100; }'
 try -i 0 'int main() { int* n; n = 0; return 0; }'
 try -i 1 'int main() { int *x; int y; x = &y; *x = 1; return y; }'
+try -i 5 'int main() { int *x; int y; x = &y; *x = 5; return *x; }'
 try -i 1 'int main() { int x; return sizeof(x) == 4; }'
 try -i 1 'int main() { int* x; return sizeof(x) == 8; }'
 try -f 42 ./test/test_file0.c
