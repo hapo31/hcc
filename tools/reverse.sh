@@ -1,4 +1,2 @@
-target=$1
-
-gcc -o reversed $target
+gcc -o reversed $@
 objdump -M intel -d ./reversed > reversed.s
