@@ -319,8 +319,33 @@ void gen(Node *node)
     gen(node->lhs);
     gen(node->rhs);
 
-    emit("pop rdi");
-    emit("pop rax");
+    // r10 は 右辺
+    emit("pop r10");
+    // r11 は 左辺
+    emit("pop r11");
+
+    // 左辺がポインタ型かつ右辺が整数値の場合
+    if (node->lhs->node_type->type == NT_PTR &&
+        node->rhs->node_type->type == NT_INT)
+    {
+        emit("mov rax, r10");
+        emit("mov r8, %d", node->lhs->node_type->size);
+        emit("mul r8");
+        emit("mov r10, rax");
+    }
+    // 右辺がポインタ型かつ左辺が整数値の場合
+    else if (node->lhs->node_type->type == NT_INT &&
+             node->rhs->node_type->type == NT_PTR)
+    {
+        emit("mov rax, r11");
+        emit("mov r8, %d", node->rhs->node_type->size);
+        emit("mul r8");
+        emit("mov r11, rax");
+    }
+
+    // 左辺は rax, 右辺は rdi に入れる
+    emit("mov rax, r11");
+    emit("mov rdi, r10");
 
     switch (node->type)
     {
