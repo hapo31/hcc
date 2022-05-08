@@ -17,7 +17,7 @@ int main()
         return 1;
     }
 
-    p = p + 2;
+    p = p + 1;
 
     if (*p != 3)
     {
