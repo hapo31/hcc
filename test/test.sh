@@ -142,7 +142,7 @@ try_with_test_file 0 ./test/pointer_test1.c ./test/test_funcs.c
 echo ---------------------------------------------------------------------
 
 if [ "$failed_count" -lt 1 ]; then
-    echo -e "$(green '[SUCCESS]') [$test_count/$test_count] tests are passed."
+    echo -e "$(green '[SUCCESS]') $test_count tests are all passed."
     exit 0
 else
     echo -e "$(red '[FAILURE]') [$failed_count/$test_count] tests are failed."
