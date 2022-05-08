@@ -7,17 +7,17 @@ int main()
 
     if (*p != 1)
     {
-        return 1;
+        return *p;
     }
 
     if (*(p + 1) != 2)
     {
-        return 1;
+        return *p;
     }
 
     if (*(p + 2) != 3)
     {
-        return 1;
+        return *p;
     }
 
     return 0;
